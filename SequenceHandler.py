@@ -38,3 +38,10 @@ def importSequences():
         sequences.append(newSequence)
     return sequences
 
+
+def saveSequenceToFile(sequence):
+    """
+    Speichert Sequenz im /sequence/ Ordner
+    :param sequence: Sequence Object
+    """
+    pass
