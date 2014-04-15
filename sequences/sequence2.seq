@@ -1,0 +1,8 @@
+{
+    "Name": "Schnell",
+    "Sequenz" :[
+    {"Temp" : 80, "Time": 20},
+    {"Temp" : 100, "Time": 30},
+    {"Temp" : 30, "Time": 40}
+    ]
+}
