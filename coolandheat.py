@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # Programm zur Steuerung des Sublimator-Prototypen
 # Autor: Dennis Paulus
 
@@ -64,7 +64,7 @@ if __name__ == '__main__':
             if count == 10:
                 round(tempcool,2)
                 round(tempheat,2)
-                print "Kuehlung = %2f C, Bit = %2d, Heizung  = %2f C, Bit = %2d" % (tempcool, cool, tempheat, heat_help)
+                print("Kuehlung = %2f C, Bit = %2d, Heizung  = %2f C, Bit = %2d" % (tempcool, cool, tempheat, heat_help))
                 
                 # Abfragen um die Temperatur einzugrenzen,
                 # GPIO Pins werden bei bestimmten Bitzahlen
