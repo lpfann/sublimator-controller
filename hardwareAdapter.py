@@ -55,7 +55,7 @@ class hardwareAdapter:
         a=1
 
 if __name__ == '__main__':
-    hA=hardwareAdapter()
+    hA=hardwareAdapter.__init__()
     hA.coolingON()
     hA.heatingON()
     while True:
