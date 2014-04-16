@@ -52,9 +52,7 @@ def saveSequenceToFile(sequence):
     """
     name = sequence.name
     fileExisting = glob.glob("./sequences/"+name+".seq")
-    if len(fileExisting) > 0:
-        print("File" + name + "already existing")
-    else:
+    if len(fileExisting) == 0:
         with open("./sequences/"+name+".seq", 'w', encoding="UTF-8") as f:
             json.dump(sequence, f, default=jdefault, indent=2)
 

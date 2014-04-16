@@ -1,0 +1,17 @@
+{
+  "name": "Schnell",
+  "programs": [
+    {
+      "targetTemp": 80,
+      "time": 20
+    },
+    {
+      "targetTemp": 100,
+      "time": 30
+    },
+    {
+      "targetTemp": 30,
+      "time": 40
+    }
+  ]
+}
