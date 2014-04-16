@@ -2,7 +2,7 @@
 
 import RPi.GPIO as GPIO
 import atexit
-#import MCP3208
+import MCP3208
 import time
 
 class hardwareAdapter:
@@ -16,7 +16,7 @@ class hardwareAdapter:
         GPIO.setup(18, GPIO.OUT)
 
         # Initialisierung des A/D Wandlers,
-        #spi = MCP3208.MCP3208(0)
+        spi = MCP3208.MCP3208(0)
 
         atexit.register(self.gpioOFF)
 
@@ -37,10 +37,16 @@ class hardwareAdapter:
     def coolingOFF(self):
         GPIO.output(16, False)
 
-    def getTemparature(self):
-        #value1 = self.spi.read(0)
-        #value2 = self.spi.read(2)
-        return 0
+    def getTemparatureCooling(self):
+        value = self.spi.read(0)
+        cool = value/10
+        return ((cool * 2.5043) / (4096 * 4.7)- 0.14993)*100
+
+    def getTemperatureHeating(self):
+        value = self.spi.read(2)
+        heat = (value+.0001)/10000
+        return 3.606 * (heat * heat) + 128.58 * heat - 242.86
+
 
     def display(self,value):
         a=1
@@ -48,10 +54,14 @@ class hardwareAdapter:
 if __name__ == '__main__':
     hA=hardwareAdapter()
     hA.coolingON()
-    time.sleep(5)
+    time.sleep(15)
+    print("Temperatur Kühlung: %2f",hA.getTemparatureCooling())
     hA.coolingOFF()
-    time.sleep(5)
+    time.sleep(15)
+    print("Temperatur Kühlung: %2f",hA.getTemparatureCooling())
     hA.heatingON()
-    time.sleep(5)
+    time.sleep(15)
+    print("Temperatur Heizung: %2f",hA.getTemparatureHeating())
     hA.heatingOFF()
-
+    time.sleep(15)
+    print("Temperatur Heizung: %2f",hA.getTemparatureHeating())
