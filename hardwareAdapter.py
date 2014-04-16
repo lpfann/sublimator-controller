@@ -37,13 +37,15 @@ class hardwareAdapter:
         GPIO.output(16, False)
 
     def getTemperatureCooling(self):
-        value = 0+self.spi.read(0)
+        value=0
+        value += self.spi.read(0)
         cool = value/10
         temperature=((cool * 2.5043) / (4096 * 4.7)- 0.14993)*100
         return round(temperature,2)
 
     def getTemperatureHeating(self):
-        value = 0+self.spi.read(2)
+        value=0
+        value += self.spi.read(2)
         heat = (value+.0001)/10000
         temperature=3.606 * (heat * heat) + 128.58 * heat - 242.86
         return round(temperature,2)
