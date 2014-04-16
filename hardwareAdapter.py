@@ -48,7 +48,7 @@ class hardwareAdapter:
         value=0
         value += self.spi.read(2)
         print "Heizung Bit: %d" % (value)
-        heat = (value+.0001)/10000
+        heat = (value+.0001)/1000
         temperature=3.606 * (heat * heat) + 128.58 * heat - 242.86
         return round(temperature,2)
 
