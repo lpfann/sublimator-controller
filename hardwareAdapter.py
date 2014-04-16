@@ -39,12 +39,12 @@ class hardwareAdapter:
     def getTemperatureCooling(self):
         value = 0+self.spi.read(0)
         cool = value/10
-        return ((cool * 2.5043) / (4096 * 4.7)- 0.14993)*100
+        return round(((cool * 2.5043) / (4096 * 4.7)- 0.14993)*100,2)
 
     def getTemperatureHeating(self):
         value = 0+self.spi.read(2)
         heat = (value+.0001)/10000
-        return 3.606 * (heat * heat) + 128.58 * heat - 242.86
+        return round(3.606 * (heat * heat) + 128.58 * heat - 242.86,2)
 
 
     def display(self,value):
