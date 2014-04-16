@@ -7,6 +7,7 @@ import time
 
 class hardwareAdapter:
 
+
     def __init__(self):
         #Konfiguration der GPIO-Pins
         GPIO.setmode(GPIO.BOARD)
@@ -15,7 +16,7 @@ class hardwareAdapter:
         GPIO.setup(18, GPIO.OUT)
 
         # Initialisierung des A/D Wandlers,
-        spi = MCP3208.MCP3208(0)
+        #spi = MCP3208.MCP3208(0)
 
         atexit.register(self.gpioOFF)
 
@@ -37,6 +38,8 @@ class hardwareAdapter:
         GPIO.output(16, False)
 
     def getTemparature(self):
+        #value1 = self.spi.read(0)
+        #value2 = self.spi.read(2)
         return 0
 
     def display(self,value):
