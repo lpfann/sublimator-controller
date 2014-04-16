@@ -7,7 +7,6 @@ import time
 
 class hardwareAdapter:
 
-
     def __init__(self):
         #Konfiguration der GPIO-Pins
         GPIO.setmode(GPIO.BOARD)
@@ -16,7 +15,7 @@ class hardwareAdapter:
         GPIO.setup(18, GPIO.OUT)
 
         # Initialisierung des A/D Wandlers,
-        spi = MCP3208.MCP3208(0)
+        self.spi = MCP3208.MCP3208(0)
 
         atexit.register(self.gpioOFF)
 
