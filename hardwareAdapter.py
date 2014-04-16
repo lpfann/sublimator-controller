@@ -24,6 +24,10 @@ class hardwareAdapter:
         GPIO.output(18, False)
         GPIO.output(16, False)
 
+    def start(self):
+        self.heatingON()
+        self.coolingON()
+
     def heatingON(self):
         GPIO.output(18, True)
 
@@ -37,17 +41,12 @@ class hardwareAdapter:
         GPIO.output(16, False)
 
     def getTemperatureCooling(self):
-        value=0
-        value += self.spi.read(0)
-        cool = value
-        print "Kuehlung Bit: %d" %(cool)
-        temperature=((cool * 2.5043) / (4096 * 4.7)- 0.14993)*100
+        value = self.spi.read(0)
+        temperature=((value * 2.5043) / (4096 * 4.7)- 0.14993)*100
         return round(temperature,2)
 
     def getTemperatureHeating(self):
-        value=0
-        value += self.spi.read(2)
-        print "Heizung Bit: %d" % (value)
+        value = self.spi.read(2)
         heat = (value+.0001)/1000
         temperature=3.606 * (heat * heat) + 128.58 * heat - 242.86
         return round(temperature,2)
@@ -60,7 +59,18 @@ if __name__ == '__main__':
     hA=hardwareAdapter()
     hA.coolingON()
     hA.heatingON()
+    tempH=0
+    tempC=0
     while True:
-        print "Temperatur Kuehlung: %2f" %(hA.getTemperatureCooling())
-        print "Temperatur Heizung: %2f" %(hA.getTemperatureHeating())
+        tempH=hA.getTemperatureHeating()
+        tempC=hA.getTemperatureCooling()
+        print "Temperatur(H/C): %2f  C  %2f  C" %(tempH,tempC)
+        if tempH>160:
+            hA.heatingOFF()
+        if tempH<120:
+            hA.heatingON()
+        if tempC < 5:
+            hA.coolingOFF()
+        if tempC > 10:
+            hA.coolingON()
         time.sleep(5)
