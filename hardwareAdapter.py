@@ -37,12 +37,12 @@ class hardwareAdapter:
         GPIO.output(16, False)
 
     def getTemperatureCooling(self):
-        value = self.spi.read(0)
+        value = 0+self.spi.read(0)
         cool = value/10
         return ((cool * 2.5043) / (4096 * 4.7)- 0.14993)*100
 
     def getTemperatureHeating(self):
-        value = self.spi.read(2)
+        value = 0+self.spi.read(2)
         heat = (value+.0001)/10000
         return 3.606 * (heat * heat) + 128.58 * heat - 242.86
 
@@ -53,14 +53,14 @@ class hardwareAdapter:
 if __name__ == '__main__':
     hA=hardwareAdapter()
     hA.coolingON()
-    time.sleep(15)
-    print "Temperatur Kuehlung: %2f" %hA.getTemperatureCooling()
+    #time.sleep(15)
+    print "Temperatur Kuehlung: %2f" (hA.getTemperatureCooling())
     hA.coolingOFF()
-    time.sleep(15)
-    print "Temperatur Kuehlung: %2f" %hA.getTemperatureCooling()
+    #time.sleep(15)
+    print "Temperatur Kuehlung: %2f" (hA.getTemperatureCooling())
     hA.heatingON()
     time.sleep(15)
-    print "Temperatur Heizung: %2f" %hA.getTemperatureHeating()
+    print "Temperatur Heizung: %2f" (hA.getTemperatureHeating())
     hA.heatingOFF()
-    time.sleep(15)
-    print "Temperatur Heizung: %2f" %hA.getTemperatureHeating()
+    #time.sleep(15)
+    print "Temperatur Heizung: %2f" (hA.getTemperatureHeating())
