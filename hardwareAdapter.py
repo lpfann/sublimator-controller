@@ -2,7 +2,7 @@
 
 import RPi.GPIO as GPIO
 import atexit
-import MCP3208
+#import MCP3208
 import time
 
 class hardwareAdapter:
