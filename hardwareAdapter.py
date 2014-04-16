@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python
 
 import RPi.GPIO as GPIO
 import atexit
@@ -55,13 +55,13 @@ if __name__ == '__main__':
     hA=hardwareAdapter()
     hA.coolingON()
     time.sleep(15)
-    print("Temperatur Kühlung: %2f",hA.getTemparatureCooling())
+    print "Temperatur Kühlung: %2f",hA.getTemparatureCooling()
     hA.coolingOFF()
     time.sleep(15)
-    print("Temperatur Kühlung: %2f",hA.getTemparatureCooling())
+    print "Temperatur Kühlung: %2f",hA.getTemparatureCooling()
     hA.heatingON()
     time.sleep(15)
-    print("Temperatur Heizung: %2f",hA.getTemparatureHeating())
+    print "Temperatur Heizung: %2f",hA.getTemparatureHeating()
     hA.heatingOFF()
     time.sleep(15)
-    print("Temperatur Heizung: %2f",hA.getTemparatureHeating())
+    print "Temperatur Heizung: %2f",hA.getTemparatureHeating()
