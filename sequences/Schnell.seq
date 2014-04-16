@@ -3,15 +3,15 @@
   "programs": [
     {
       "targetTemp": 80,
-      "time": 20
+      "time": 5
     },
     {
       "targetTemp": 100,
-      "time": 30
+      "time": 10
     },
     {
       "targetTemp": 30,
-      "time": 40
+      "time": 10
     }
   ]
 }
