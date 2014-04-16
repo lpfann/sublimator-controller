@@ -57,14 +57,8 @@ class hardwareAdapter:
 if __name__ == '__main__':
     hA=hardwareAdapter()
     hA.coolingON()
-    #time.sleep(15)
-    print "Temperatur Kuehlung: %2f" %(hA.getTemperatureCooling())
-    hA.coolingOFF()
-    #time.sleep(15)
-    print "Temperatur Kuehlung: %2f" %(hA.getTemperatureCooling())
     hA.heatingON()
-    time.sleep(15)
-    print "Temperatur Heizung: %2f" %(hA.getTemperatureHeating())
-    hA.heatingOFF()
-    #time.sleep(15)
-    print "Temperatur Heizung: %2f" %(hA.getTemperatureHeating())
+    while True:
+        print "Temperatur Kuehlung: %2f" %(hA.getTemperatureCooling())
+        print "Temperatur Heizung: %2f" %(hA.getTemperatureHeating())
+        time.sleep(5)
