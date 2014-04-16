@@ -1,6 +1,10 @@
 import glob
 import json
+import logging
 
+
+
+logger = logging.getLogger(__name__)
 
 class ProgramPart:
     targetTemp = 0
@@ -42,6 +46,7 @@ def importSequences():
                 programs.append(part)
             newSequence = Sequence(data["name"], programs)
             sequences.append(newSequence)
+    logger.debug("%i Sequenzen konnten importiert werden" % len(sequences))
     return sequences
 
 
@@ -55,4 +60,5 @@ def saveSequenceToFile(sequence):
     if len(fileExisting) == 0:
         with open("./sequences/"+name+".seq", 'w', encoding="UTF-8") as f:
             json.dump(sequence, f, default=jdefault, indent=2)
-
+    else:
+        logger.error("Datei %s exisitert schon. Konnte nicht gespeichert werden"%(name+".seq"))
