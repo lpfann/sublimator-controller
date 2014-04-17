@@ -7,18 +7,14 @@ import logging
 logger = logging.getLogger(__name__)
 
 class ProgramPart:
-    targetTemp = 0
-    time = 0
 
     def __init__(self, temp, time):
         self.targetTemp = temp
         self.time = time
 
 
-class Sequence:
-    name = ""
-    programs = []
 
+class Sequence:
     def __init__(self, name, programs):
         self.name = name
         self.programs = programs

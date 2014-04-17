@@ -5,17 +5,17 @@
 
 #import Anweisungen der genutzten Libraries 
 
-import SequenceHandler
-#import hardwareAdapter
 import time
 from threading import Timer
 import logging
 
+import SequenceHandler
 
 
 progindex = 0
 targettemp = 0
 running = False
+hardware = None
 
 #Logger initalisieren
 logger = logging.getLogger(__name__)
@@ -37,11 +37,11 @@ def counter():
 
 
 def tempregulator():
-    global targettemp
-    # if targettemp <= hardware.getTemparature():
-    #     hardware.heatingON()
-    # else:
-    #     hardware.heatingOFF()
+    global targettemp,hardware
+    if targettemp <= hardware.getTemparature():
+        hardware.heatingON()
+    else:
+        hardware.heatingOFF()
 
 
 
