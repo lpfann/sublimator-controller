@@ -9,7 +9,7 @@ import time
 from threading import Timer
 import logging
 import SequenceHandler
-#import hardwareAdapter
+import hardwareAdapter
 
 
 running = False
@@ -41,11 +41,11 @@ def counter():
 
 
 def tempregulator(targettemp):
-    # if targettemp <= hardware.getTemperatureHeating():
-    #     hardware.heatingON()
-    # else:
-    #     hardware.heatingOFF()
-    pass
+    if targettemp <= hardware.getTemperatureHeating():
+        hardware.heatingON()
+    else:
+        hardware.heatingOFF()
+
 
 def controller(currSeq):
     global running, progindex
@@ -63,7 +63,7 @@ def controller(currSeq):
             Timer(prog.time, counter).start()
             targettemp = prog.targetTemp
             # Ausgabe der momentanen Daten
-            logger.debug("Sequenz {1}: TargetTemp:{0} CurrentTemp: - Timer: ".format(targettemp, currSeq.name))
+            logger.debug("Sequenz {1}: TargetTemp:{0} CurrentTemp:{2} - Timer: ".format(targettemp, currSeq.name,hardware.getTemperatureHeating()))
         if progindex == len(currSeq.programs):
             running = False
         # Temperatur regulieren
@@ -86,10 +86,10 @@ def stop():
 
 if __name__ == '__main__':
     initLogger()
+    # Hardware Adapter initalisieren
+    hardware = hardwareAdapter.hardwareAdapter()
     # Import der zur Verfuegung stehenden Sequenzen
     sequences = SequenceHandler.importSequences()
     currentSequence = sequences[0]
     controller(currentSequence)
-    # Hardware Adapter initalisieren
-    #hardware = hardwareAdapter.hardwareAdapter()
 
