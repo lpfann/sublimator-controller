@@ -3,14 +3,15 @@
 # Programm zur Steuerung des Sublimator-Prototypen
 # Autor: Dennis Paulus
 
-#import Anweisungen der genutzten Libraries 
-
+#import Anweisungen der genutzten Libraries
+import random
 import time
 from threading import Timer
 import logging
 import SequenceHandler
-import hardwareAdapter
-
+#import hardwareAdapter
+import datetime
+import matplotlib.pyplot as plt
 
 running = False
 hardware = None
@@ -41,14 +42,15 @@ def counter():
 
 
 def tempregulator(targetheatingtemp, targetcoolingtemp):
-    if hardware.getTemperatureHeating() <= targetheatingtemp:
-        hardware.heatingON()
-    else:
-        hardware.heatingOFF()
-    if hardware.getTemperatureCooling() >= targetcoolingtemp:
-        hardware.coolingON()
-    else:
-        hardware.coolingOFF()
+    temp_delay  = 2 # Temperatur-Delay um weiteres aufheizen über TargetHeatingTemp zu verhindern
+    # if hardware.getTemperatureHeating() <= targetheatingtemp - temp_delay:
+    #     hardware.heatingON()
+    # else:
+    #     hardware.heatingOFF()
+    # if hardware.getTemperatureCooling() >= targetcoolingtemp:
+    #     hardware.coolingON()
+    # else:
+    #     hardware.coolingOFF()
 
 
 def controller(currSeq):
@@ -60,6 +62,7 @@ def controller(currSeq):
     Timer(prog.time, counter).start()
     oldindex = progindex
     running = True
+    datalog = []
     while (running):
         # Ablauf der Sequenz steuern
         if progindex < len(currSeq.programs) and oldindex != progindex:
@@ -73,13 +76,43 @@ def controller(currSeq):
             running = False
 
         # Temperatur regulieren
-        tempregulator(targetheatingtemp,targetcoolingtemp)
+        tempregulator(targetheatingtemp, targetcoolingtemp)
         # Ausgabe der momentanen Daten
-        logger.debug("Programm {1}: TargetHeatingTemp:{0} CurrentHeatingTemp:{2} TargetCoolingTemp:{3} CurrentCoolingTemp:{4} ".
-                     format(targetheatingtemp, currSeq.name,hardware.getTemperatureHeating(),targetcoolingtemp,hardware.getTemperatureCooling()))
+        # logger.debug("Programm {1}: TargetHeatingTemp:{0} CurrentHeatingTemp:{2} TargetCoolingTemp:{3} CurrentCoolingTemp:{4} ".
+        #              format(targetheatingtemp, currSeq.name,hardware.getTemperatureHeating(),targetcoolingtemp,hardware.getTemperatureCooling()))
+        datalog.append((targetheatingtemp,random.randint(targetheatingtemp/2, targetheatingtemp),targetcoolingtemp,
+                        random.randint(targetcoolingtemp/2, targetcoolingtemp)))
         # Pause
         time.sleep(0.3)
+
+    writedata(datalog, currSeq)
+    plotlog(datalog)
     logger.info("Sequenz vollständig")
+
+
+def writedata(datalog, currSeq):
+    filename = "./logs/" + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M") + "_" + currSeq.name + ".csv"
+    datafile = open(filename, 'w+')
+    datafile.write("#TargetHeating, CurrentHeating, TargetCooling, CurrentCooling\n")
+    for x in datalog:
+        datafile.write(("{}, {}, {}, {}\n".format(x[0], x[1], x[2], x[3])))
+    datafile.close()
+    logger.info("Logdatei mit Messdaten wurde erstellt: {}".format(filename))
+
+
+def plotlog(data):
+    fig, ax = plt.subplots()
+    ax.plot([x[0] for x in data],'r--')#targetHeating
+    ax.plot([x[1] for x in data],'r-', antialiased=True)#heating
+    ax.plot([x[2] for x in data],'b--')#targetCooling
+    ax.plot([x[3] for x in data],'b-')#cooling
+    maxTemp = max([x[0] for x in data])
+    plt.axis([0, len(data), 0, maxTemp+10]) #xmin,xmax,ymin,ymax
+    plt.title("Programmablauf")
+    plt.xlabel("Zeit")
+    plt.ylabel(u"Temperatur °C")
+    plt.show()
+
 
 
 def start():
@@ -96,7 +129,7 @@ def stop():
 if __name__ == '__main__':
     initLogger()
     # Hardware Adapter initalisieren
-    hardware = hardwareAdapter.hardwareAdapter()
+    #hardware = hardwareAdapter.hardwareAdapter()
     # Import der zur Verfuegung stehenden Sequenzen
     sequences = SequenceHandler.importSequences()
     currentSequence = sequences[0]
