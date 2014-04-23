@@ -2,15 +2,18 @@
   "name": "Schnell",
   "programs": [
     {
-      "targetTemp": 80,
+      "targetHeatingTemp": 80,
+      "targetCoolingTemp": 10,
       "time": 5
     },
     {
-      "targetTemp": 100,
+      "targetHeatingTemp": 100,
+      "targetCoolingTemp": 6,
       "time": 10
     },
     {
-      "targetTemp": 30,
+      "targetHeatingTemp": 30,
+      "targetCoolingTemp": 15,
       "time": 10
     }
   ]

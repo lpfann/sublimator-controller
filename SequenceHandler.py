@@ -8,8 +8,9 @@ logger = logging.getLogger(__name__)
 
 class ProgramPart:
 
-    def __init__(self, temp, time):
-        self.targetTemp = temp
+    def __init__(self, heatingtemp,coolingtemp, time):
+        self.targetHeatingTemp = heatingtemp
+        self.targetCoolingTemp = coolingtemp
         self.time = time
 
 
@@ -38,7 +39,7 @@ def importSequences():
             data = json.load(sequencefile)
             programs = []
             for programPartObject in data["programs"]:
-                part = ProgramPart(programPartObject["targetTemp"], programPartObject["time"])
+                part = ProgramPart(programPartObject["targetHeatingTemp"],programPartObject["targetCoolingTemp"], programPartObject["time"])
                 programs.append(part)
             newSequence = Sequence(data["name"], programs)
             sequences.append(newSequence)

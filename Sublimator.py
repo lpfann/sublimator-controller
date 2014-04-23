@@ -40,18 +40,23 @@ def counter():
     progindex += 1
 
 
-def tempregulator(targettemp):
-    if targettemp >= hardware.getTemperatureHeating():
+def tempregulator(targetheatingtemp, targetcoolingtemp):
+    if hardware.getTemperatureHeating() <= targetheatingtemp:
         hardware.heatingON()
     else:
         hardware.heatingOFF()
+    if hardware.getTemperatureCooling() >= targetcoolingtemp:
+        hardware.coolingON()
+    else:
+        hardware.coolingOFF()
 
 
 def controller(currSeq):
     global running, progindex
     progindex = 0
     prog = currSeq.programs[progindex]
-    targettemp = prog.targetTemp
+    targetheatingtemp = prog.targetHeatingTemp
+    targetcoolingtemp = prog.targetCoolingTemp
     Timer(prog.time, counter).start()
     oldindex = progindex
     running = True
@@ -61,15 +66,17 @@ def controller(currSeq):
             oldindex = progindex
             prog = currSeq.programs[progindex]
             Timer(prog.time, counter).start()
-            targettemp = prog.targetTemp
+            targetheatingtemp = prog.targetHeatingTemp
+            targetcoolingtemp = prog.targetCoolingTemp
 
         if progindex == len(currSeq.programs):
             running = False
 
         # Temperatur regulieren
-        tempregulator(targettemp)
+        tempregulator(targetheatingtemp,targetcoolingtemp)
         # Ausgabe der momentanen Daten
-        logger.debug("Sequenz {1}: TargetTemp:{0} CurrentTemp:{2} - Timer: ".format(targettemp, currSeq.name,hardware.getTemperatureHeating()))
+        logger.debug("Programm {1}: TargetHeatingTemp:{0} CurrentHeatingTemp:{2} TargetCoolingTemp:{3} CurrentCoolingTemp:{4} ".
+                     format(targetheatingtemp, currSeq.name,hardware.getTemperatureHeating(),targetcoolingtemp,hardware.getTemperatureCooling()))
         # Pause
         time.sleep(0.3)
     logger.info("Sequenz vollständig")
