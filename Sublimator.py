@@ -41,7 +41,7 @@ def counter():
 
 
 def tempregulator(targettemp):
-    if targettemp <= hardware.getTemperatureHeating():
+    if targettemp >= hardware.getTemperatureHeating():
         hardware.heatingON()
     else:
         hardware.heatingOFF()
@@ -62,12 +62,14 @@ def controller(currSeq):
             prog = currSeq.programs[progindex]
             Timer(prog.time, counter).start()
             targettemp = prog.targetTemp
-            # Ausgabe der momentanen Daten
-            logger.debug("Sequenz {1}: TargetTemp:{0} CurrentTemp:{2} - Timer: ".format(targettemp, currSeq.name,hardware.getTemperatureHeating()))
+
         if progindex == len(currSeq.programs):
             running = False
+
         # Temperatur regulieren
         tempregulator(targettemp)
+        # Ausgabe der momentanen Daten
+        logger.debug("Sequenz {1}: TargetTemp:{0} CurrentTemp:{2} - Timer: ".format(targettemp, currSeq.name,hardware.getTemperatureHeating()))
         # Pause
         time.sleep(0.3)
     logger.info("Sequenz vollständig")
