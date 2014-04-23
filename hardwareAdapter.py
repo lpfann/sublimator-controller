@@ -57,20 +57,15 @@ class hardwareAdapter:
 
 if __name__ == '__main__':
     hA=hardwareAdapter()
-    hA.coolingON()
     hA.heatingON()
     tempH=0
     tempC=0
     while True:
         tempH=hA.getTemperatureHeating()
         tempC=hA.getTemperatureCooling()
-        print "Temperatur(H/C): %2f  C  %2f  C" %(tempH,tempC)
-        if tempH>160:
+        if tempH > 161:
             hA.heatingOFF()
-        if tempH<120:
+        elif tempH < 160:
             hA.heatingON()
-        if tempC < 5:
-            hA.coolingOFF()
-        if tempC > 10:
-            hA.coolingON()
+        print "Temperatur(H/C): %2f  C  %2f  C" %(tempH,tempC)
         time.sleep(5)
