@@ -42,9 +42,9 @@ class hardwareAdapter:
         GPIO.cleanup()
 
     def initLcd(self):
-        GPIO.output(DOG_RS, 0)
+        GPIO.output(DOG_RS, False)
         time.sleep(0.01)
-        GPIO.output(DOG_RS, 1)
+        GPIO.output(DOG_RS, True)
         time.sleep(0.01)
         init_seq = [ 0x40, 0xA1, 0xC0, 0xA6, 0xA2, 0x2F, 0xF8, 0x00, 0x27, 0x81, 0x16, 0xAC, 0x00, 0xAF ]
         self.sendCmdSeq(init_seq)
@@ -73,7 +73,7 @@ class hardwareAdapter:
             time.sleep(0.00001)
             GPIO.output(DOG_CLK, 1)
             time.sleep(0.00001)
-    GPIO.output(DOG_CSB, 1)
+    GPIO.output(DOG_CSB, True)
     time.sleep(0.01)
 
     def sendCmd(self,cmd):
