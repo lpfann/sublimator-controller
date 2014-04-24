@@ -7,21 +7,28 @@
 import random
 import time
 from threading import Timer
+from threading import Thread
 import logging
 import SequenceHandler
 #import hardwareAdapter
 import datetime
 import matplotlib.pyplot as plt
 
-running = False
+
+running = True
 hardware = None
 logger = None
 progindex = 0
-
+timer = None
+datalog = None
 
 def initLogger():
+    """
+        Initalisiert den logger der überall, auch in den Untermodulen,
+        benutzt werden kann.
+        Formatierung und verschiedene Handler für Consolen und Datei Logging werden hier konfiguriert
+    """
     global logger
-    #Logger initalisieren
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
     filehandler = logging.FileHandler('main.log')
@@ -36,12 +43,21 @@ def initLogger():
 
 
 def counter():
+    """
+         Zeitzähler für die Programmzeiten
+
+    """
     global progindex
     # Methode die im Timer Thread aufgerufen wird
     progindex += 1
 
 
 def tempregulator(targetheatingtemp, targetcoolingtemp):
+    """
+         Funktion, welche die Temperatur reguliert um den Zielwerten zu entsprechen
+    :param targetheatingtemp: Zielwert für Heizung
+    :param targetcoolingtemp: Zielwert für Kühlung
+    """
     temp_delay  = 2 # Temperatur-Delay um weiteres aufheizen über TargetHeatingTemp zu verhindern
     # if hardware.getTemperatureHeating() <= targetheatingtemp - temp_delay:
     #     hardware.heatingON()
@@ -54,24 +70,33 @@ def tempregulator(targetheatingtemp, targetcoolingtemp):
 
 
 def controller(currSeq):
-    global running, progindex
+    """
+        Steuert den Ablauf der Sequenz.
+        Ruft mehrmals Timer auf, die entsprechend den Programmpunkten  lange laufen
+    :param currSeq:
+    """
+    global running, progindex,datalog
+    # Initalisierungen für den ersten programmpunkt
     progindex = 0
     prog = currSeq.programs[progindex]
     targetheatingtemp = prog.targetHeatingTemp
     targetcoolingtemp = prog.targetCoolingTemp
-    Timer(prog.time, counter).start()
+    timer = Timer(prog.time, counter)
+    timer.start()
     oldindex = progindex
     running = True
     datalog = []
-    while (running):
+    # Schleife die solange läuft, bis die Sequenz komplett durchlaufen ist oder von außen abgebrochen wird.
+    while running:
         # Ablauf der Sequenz steuern
         if progindex < len(currSeq.programs) and oldindex != progindex:
             oldindex = progindex
             prog = currSeq.programs[progindex]
-            Timer(prog.time, counter).start()
+            timer = Timer(prog.time, counter)
+            timer.start()
             targetheatingtemp = prog.targetHeatingTemp
             targetcoolingtemp = prog.targetCoolingTemp
-
+        #Abbruchbedingung - Ende der Sequenz erreicht
         if progindex == len(currSeq.programs):
             running = False
 
@@ -85,12 +110,16 @@ def controller(currSeq):
         # Pause
         time.sleep(0.3)
 
-    writedata(datalog, currSeq)
-    plotlog(datalog)
-    logger.info("Sequenz vollständig")
+    writedatatofile(datalog, currSeq) #Datenlog schreiben
+    logger.info(u"Sequenz abgelaufen")
 
 
-def writedata(datalog, currSeq):
+def writedatatofile(datalog, currSeq):
+    """
+        Schreibt Datenlog in eine .csv Datei um damit weiter arbeiten zu können.
+    :param datalog: Der zu schreibende Datenlog
+    :param currSeq: Gewählte Sequenz, mit der das Programm abgelaufen ist
+    """
     filename = "./logs/" + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M") + "_" + currSeq.name + ".csv"
     datafile = open(filename, 'w+')
     datafile.write("#TargetHeating, CurrentHeating, TargetCooling, CurrentCooling\n")
@@ -101,9 +130,13 @@ def writedata(datalog, currSeq):
 
 
 def plotlog(data):
+    """
+         Plottet die Daten als Temperaturkurve
+    :param data: Daten, die vom Controller gesammelt wurden
+    """
     fig, ax = plt.subplots()
     ax.plot([x[0] for x in data],'r--')#targetHeating
-    ax.plot([x[1] for x in data],'r-', antialiased=True)#heating
+    ax.plot([x[1] for x in data],'r-')#heating
     ax.plot([x[2] for x in data],'b--')#targetCooling
     ax.plot([x[3] for x in data],'b-')#cooling
     maxTemp = max([x[0] for x in data])
@@ -111,16 +144,30 @@ def plotlog(data):
     plt.title("Programmablauf")
     plt.xlabel("Zeit")
     plt.ylabel(u"Temperatur °C")
-    plt.show()
+    plt.show() # !Stoppt den momentanen Thread solange bis Plot geschlossen wird!
 
 
+def start(sequence):
+    """
+        Funktion zum Starten des Controller Threads.
+        Sollte vom Starten-Button aufgerufen werden.
 
-def start():
+    :param sequence: Sequenz die vom Controller abgelaufen wird.
+    """
+    global running, datalog
     logger.info("Gestartet")
-    pass
+    t = Thread(target=controller,args=(sequence,))
+    t.start()
+    t.join()
+    plotlog(datalog) # Temporäre Lösung zum plotten. Sollte später in der GUI eingebunden werden
 
 
 def stop():
+    """
+        Funktion zum stoppen des Controller Threads.
+        Sollte von einem mögliche Stop-Button aufgerufen werden
+
+    """
     global running
     running = False
     logger.info("Gestoppt")
@@ -133,5 +180,5 @@ if __name__ == '__main__':
     # Import der zur Verfuegung stehenden Sequenzen
     sequences = SequenceHandler.importSequences()
     currentSequence = sequences[0]
-    controller(currentSequence)
+    start(currentSequence)
 
