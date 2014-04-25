@@ -47,11 +47,13 @@ class hardwareAdapter:
 
     def getTemperatureCooling(self):
         value = self.spi.read(0)
+        print value
         temperature=((value * 2.5043) / (4096 * 4.7)- 0.14993)*100
         return round(temperature,2)
 
     def getTemperatureHeating(self):
         value = self.spi.read(2)
+        print value
         heat = (value+.0001)/1000
         temperature=3.606 * (heat * heat) + 128.58 * heat - 242.86
         return round(temperature,2)
@@ -59,11 +61,12 @@ class hardwareAdapter:
 if __name__ == '__main__':
     hA=hardwareAdapter()
     hA.start()
-    temp,cool=0
+    temp=0
+    cool=0
     while True:
         temp=hA.getTemperatureHeating()
         cool=hA.getTemperatureCooling()
-        print "Temperatur: %2f  Kuehlung: %2f" %(round(temp,2),round(cool,2))
+        print "Temperatur: %2f  Kuehlung: %2f\n" %(temp,cool)
         if temp>160:
             hA.heatingOFF()
         elif temp<155:
