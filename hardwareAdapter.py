@@ -63,16 +63,14 @@ if __name__ == '__main__':
     hA.start()
     temp=0
     cool=0
+    counter =0
     while True:
         temp=hA.getTemperatureHeating()
         cool=hA.getTemperatureCooling()
         print "Temperatur: %2f  Kuehlung: %2f\n" %(temp,cool)
         if temp>160:
             hA.heatingOFF()
-        elif temp<155:
-            hA.heatingON()
-        if cool<6:
-            hA.coolingOFF()
-        elif cool > 9:
-            hA.coolingON()
+        counter += 1
+        if counter ==15:
+            hA.heatingOFF()
         time.sleep(3)
