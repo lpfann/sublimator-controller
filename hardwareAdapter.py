@@ -134,5 +134,9 @@ if __name__ == '__main__':
             hA.setPos(i, 0)
             hA.sendDataSeq([data]*128)
             data += pow(4, j+1)
+    for i in range(64):
+        for j in range(8):
+            hA.setPos(j, i*2)
+            hA.sendDataSeq([ 0xFF, 0x00 ])
     hA.clearLcd()
     print "Finished"
