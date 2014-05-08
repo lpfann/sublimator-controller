@@ -1,0 +1,17 @@
+{
+  "name": "Langsam",
+  "programs": [
+    {
+      "targetTemp": 80,
+      "time": 5
+    },
+    {
+      "targetTemp": 100,
+      "time": 10
+    },
+    {
+      "targetTemp": 30,
+      "time": 10
+    }
+  ]
+}
