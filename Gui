@@ -1,0 +1,66 @@
+import _tkinter
+from Tkinter import *
+import SequenceHandler
+
+
+class Gui(Frame):
+
+    def __init__(self, master=None):
+        self.runner = 1
+        Frame.__init__(self, master)
+        self.pack()
+        self.test = Label( text = "Programm auswaehlen")
+        self.buttonCreate()
+        self.button2Create()
+        self.test.pack()
+
+    def showText(self, text):
+        self.test = Entry(self)
+        self.test.insert(END,text)
+        self.test.pack()
+
+    def buttonCreate(self):
+        """
+
+        @rtype : object
+        """
+        self.button01 = Button(self)
+        self.sequences = SequenceHandler.importSequences()
+        self.button01["text"] = self.sequences[0].name
+        self.button01.bind("<Button-1>",self.button01_Click)
+        self.button01.pack(side=LEFT)
+
+
+    def button2Create(self):
+        """
+
+        @rtype : object
+        """
+        self.button02 = Button(self)
+        self.button02["text"] = "starten"
+        self.button02.bind("<Button-1>",self.button02_Click)
+        self.button02.pack(side=RIGHT)
+
+    def button01_Click(self,event):
+
+        if len(self.sequences) > 1:
+
+            if(self.runner < len(self.sequences)):
+                self.button01["text"] = self.sequences[self.runner].name
+                self.runner+=1
+            else:
+                self.button01["text"] = self.sequences[0].name
+                self.runner = 1
+
+    def button02_Click(self,event):
+        print("Programm: "+ self.button01["text"]+ " starten"  )
+# create the application
+myapp = Gui()
+
+#
+# here are method calls to the window manager class
+#
+myapp.master.title("Sublimator")
+myapp.master.minsize(860,560)
+
+myapp.mainloop()
