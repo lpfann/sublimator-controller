@@ -161,8 +161,6 @@ def start(sequence):
     logger.info("Gestartet")
     t = Thread(target=controller,args=(sequence,))
     t.start()
-    t.join()
-    plotlog(datalog) # Temporäre Lösung zum plotten. Sollte später in der GUI eingebunden werden
 
 
 def stop():

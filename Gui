@@ -2,7 +2,8 @@ import _tkinter
 from Tkinter import *
 import SequenceHandler
 import Sublimator
-import MCP3208
+import sys
+#import MCP3208
 
 class IODirector(object):
     def __init__(self, text_area):
@@ -19,19 +20,18 @@ class Gui(Frame):
     def __init__(self, master=None):
         self.runner = 1
         Frame.__init__(self, master, bg = "cyan")
-        self.pack(fill=BOTH)
+        self.grid()
         self.buttonCreate()
         self.button2Create()
         self.showText()
 
     def showText(self):
-        scrollbar = Scrollbar(self)
-        self.test = Text(self,height=20,width=20)
-        self.test.insert(END,"text")
-        scrollbar.pack(side=RIGHT,fill=Y)
-        self.test.pack(side=RIGHT,fill=Y)
-        scrollbar.config(command=self.test.yview)
-        self.test.config(yscrollcommand=scrollbar.set)
+        self.scrollbar = Scrollbar(self)
+        self.test = Text(self,height=10,width=150)
+        self.scrollbar.grid(column=3,row=0,sticky=N+S)
+        self.test.grid(column=2,row=0)
+        self.scrollbar.config(command=self.test.yview)
+        self.test.config(yscrollcommand=self.scrollbar.set,state=DISABLED)
 
 
     def buttonCreate(self):
@@ -39,14 +39,17 @@ class Gui(Frame):
         self.sequences = SequenceHandler.importSequences()
         self.button01["text"] = self.sequences[0].name
         self.button01.bind("<Button-1>",self.button01_Click)
-        self.button01.pack(side=LEFT)
+        self.button01.grid(column=0,row=0)
 
 
     def button2Create(self):
         self.button02 = Button(self)
         self.button02["text"] = "starten"
+        programm = Label(text="Waehle Programm aus und starte dieses!")
         self.button02.bind("<Button-1>",self.button02_Click)
-        self.button02.pack(side=LEFT)
+        self.button02.grid(column=1,row=0)
+        programm.grid(column=2,row=0)
+
 
     def button01_Click(self,event):
 
@@ -60,10 +63,29 @@ class Gui(Frame):
                 self.runner = 1
 
     def button02_Click(self,event):
-        sys.stdout = StdoutDirector(self.test)
+        #oldout = sys.stdout
 
+            prog = self.sequences[self.runner-1].programs[Sublimator.progindex]
+            targetheatingtemp = prog.targetHeatingTemp
+            targetcoolingtemp = prog.targetCoolingTemp
+            self.test.config(state=NORMAL)
+            Sublimator.start(self.sequences[self.runner-1])
+            while Sublimator.running:
+                 self.test.insert(END,"Programm {1}: TargetHeatingTemp:{0} CurrentHeatingTemp:{2} TargetCoolingTemp:{3} CurrentCoolingTemp:{4} ".
+                      format(targetheatingtemp, self.sequences[self.runner-1].name,10,targetcoolingtemp,10) + "\n")
+
+        #sys.stdout = StdoutDirector(self.test)
+
+        #print "Test"
+            self.test.config(state=DISABLED)
+            if self.scrollbar.get()[1] == 1.0:
+                self.test.yview(END)
+       # sys.stdout = oldout
 # create the application
+Sublimator.initLogger()
+
 myapp = Gui()
+
 
 #
 # here are method calls to the window manager class
