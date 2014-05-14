@@ -59,8 +59,8 @@ class hardwareAdapter:
         return round(temperature,2)
 
 if __name__ == '__main__':
-   """ hA=hardwareAdapter()
-    hA.coolingON()
+    hA=hardwareAdapter()
+    """hA.coolingON()
     temp=0
     cool=0
     pC=0
