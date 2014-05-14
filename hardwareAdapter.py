@@ -59,7 +59,7 @@ class hardwareAdapter:
         return round(temperature,2)
 
 if __name__ == '__main__':
-    hA=hardwareAdapter()
+   """ hA=hardwareAdapter()
     hA.coolingON()
     temp=0
     cool=0
@@ -75,4 +75,8 @@ if __name__ == '__main__':
         counter += 1
         if counter ==10:
             hA.coolingOFF()
-        time.sleep(3)
+        time.sleep(3)"""
+   for i in [3,5,7,8,10,11,12,13,15,16,18,19,21,22,23,24,26]:
+       pin=GPIO.input(i)
+       func=GPIO.function(i)
+       print "PinFunktion: " + func + " Status: "+pin
