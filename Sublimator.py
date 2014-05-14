@@ -4,6 +4,7 @@
 # Autor: Dennis Paulus
 
 #import Anweisungen der genutzten Libraries
+import os
 import random
 import time
 from threading import Timer
@@ -120,8 +121,10 @@ def writedatatofile(datalog, currSeq):
     :param datalog: Der zu schreibende Datenlog
     :param currSeq: Gewählte Sequenz, mit der das Programm abgelaufen ist
     """
+    if not os.path.exists("./logs"):
+        os.makedirs("./logs")
     filename = "./logs/" + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M") + "_" + currSeq.name + ".csv"
-    datafile = open(filename, 'w+')
+    datafile = open(filename, 'w')
     datafile.write("#TargetHeating, CurrentHeating, TargetCooling, CurrentCooling\n")
     for x in datalog:
         datafile.write(("{}, {}, {}, {}\n".format(x[0], x[1], x[2], x[3])))
