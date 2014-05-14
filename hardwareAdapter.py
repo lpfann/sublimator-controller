@@ -1,8 +1,5 @@
 #!/usr/bin/python
 
-import logging
-log_format = '%(levelname)s | %(asctime)-15s | %(message)s'
-logging.basicConfig(format=log_format, level=logging.DEBUG)
 import RPi.GPIO as GPIO
 import atexit
 import MCP3208
@@ -63,17 +60,19 @@ class hardwareAdapter:
 
 if __name__ == '__main__':
     hA=hardwareAdapter()
-    hA.start()
+    hA.coolingON()
     temp=0
     cool=0
+    pC=0
+    pH=0
     counter =0
     while True:
         temp=hA.getTemperatureHeating()
         cool=hA.getTemperatureCooling()
-        print "Temperatur: %2f  Kuehlung: %2f\n" %(temp,cool)
-        if temp>160:
-            hA.heatingOFF()
+        pC=GPIO.input(COOL)
+        pH=GPIO.input(HEAT)
+        print "Temperatur: %2f  Kuehlung: %2f  PinHeat: %d  PinCool: %d\n" %(temp,cool,pH,pC)
         counter += 1
-        if counter ==15:
-            hA.heatingOFF()
+        if counter ==10:
+            hA.coolingOFF()
         time.sleep(3)
