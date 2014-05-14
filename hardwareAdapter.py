@@ -1,5 +1,8 @@
 #!/usr/bin/python
 
+import logging
+log_format = '%(levelname)s | %(asctime)-15s | %(message)s'
+logging.basicConfig(format=log_format, level=logging.DEBUG)
 import RPi.GPIO as GPIO
 import atexit
 import MCP3208
