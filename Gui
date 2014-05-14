@@ -1,29 +1,40 @@
 import _tkinter
 from Tkinter import *
 import SequenceHandler
+import Sublimator
+import MCP3208
 
+class IODirector(object):
+    def __init__(self, text_area):
+        self.text_area = text_area
+
+class StdoutDirector(IODirector):
+    def write(self, msg):
+        self.text_area.insert(END, msg)
+    def flush(self):
+        pass
 
 class Gui(Frame):
 
     def __init__(self, master=None):
         self.runner = 1
-        Frame.__init__(self, master)
-        self.pack()
-        self.test = Label( text = "Programm auswaehlen")
+        Frame.__init__(self, master, bg = "cyan")
+        self.pack(fill=BOTH)
         self.buttonCreate()
         self.button2Create()
-        self.test.pack()
+        self.showText()
 
-    def showText(self, text):
-        self.test = Entry(self)
-        self.test.insert(END,text)
-        self.test.pack()
+    def showText(self):
+        scrollbar = Scrollbar(self)
+        self.test = Text(self,height=20,width=20)
+        self.test.insert(END,"text")
+        scrollbar.pack(side=RIGHT,fill=Y)
+        self.test.pack(side=RIGHT,fill=Y)
+        scrollbar.config(command=self.test.yview)
+        self.test.config(yscrollcommand=scrollbar.set)
+
 
     def buttonCreate(self):
-        """
-
-        @rtype : object
-        """
         self.button01 = Button(self)
         self.sequences = SequenceHandler.importSequences()
         self.button01["text"] = self.sequences[0].name
@@ -32,14 +43,10 @@ class Gui(Frame):
 
 
     def button2Create(self):
-        """
-
-        @rtype : object
-        """
         self.button02 = Button(self)
         self.button02["text"] = "starten"
         self.button02.bind("<Button-1>",self.button02_Click)
-        self.button02.pack(side=RIGHT)
+        self.button02.pack(side=LEFT)
 
     def button01_Click(self,event):
 
@@ -53,7 +60,8 @@ class Gui(Frame):
                 self.runner = 1
 
     def button02_Click(self,event):
-        print("Programm: "+ self.button01["text"]+ " starten"  )
+        sys.stdout = StdoutDirector(self.test)
+
 # create the application
 myapp = Gui()
 
