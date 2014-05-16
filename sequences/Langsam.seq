@@ -2,7 +2,7 @@
   "name": "Langsam",
   "programs": [
     {
-      "targetHeatingTemp": 80,
+      "targetHeatingTemp": 45,
       "targetCoolingTemp": 10,
       "time": 1
     },
