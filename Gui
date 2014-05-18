@@ -2,8 +2,15 @@ import _tkinter
 from Tkinter import *
 import SequenceHandler
 import Sublimator
+import time
+from threading import Timer
+import datetime
 import sys
-#import MCP3208
+import matplotlib
+matplotlib.use('TkAgg')
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+from matplotlib.backend_bases import key_press_handler
+from matplotlib.figure import Figure
 
 class IODirector(object):
     def __init__(self, text_area):
@@ -17,7 +24,9 @@ class StdoutDirector(IODirector):
 
 class Gui(Frame):
 
+
     def __init__(self, master=None):
+        self.running = FALSE
         self.runner = 1
         Frame.__init__(self, master, bg = "cyan")
         self.grid()
@@ -26,54 +35,65 @@ class Gui(Frame):
         self.buttonCreate()
         self.button2Create()
 
+
     def showTextline(self):
+        phases = Entry(self)
+        phases.insert(END,"Phases of the Program")
+        phases.grid(column=0,row=1,sticky=N)
+
         self.line = Entry(self)
-        self.line.grid(column=0,row=1,sticky=N)
+        self.line.grid(column=0,row=2,sticky=N)
         self.line.config(state=DISABLED)
 
         self.line1 = Entry(self)
-        self.line1.grid(column=0,row=2,sticky=N)
+        self.line1.grid(column=0,row=3,sticky=N)
         self.line1.config(state=DISABLED)
 
         self.line2 = Entry(self)
-        self.line2.grid(column=0,row=3,sticky=N)
+        self.line2.grid(column=0,row=4,sticky=N)
         self.line2.config(state=DISABLED)
 
         self.bar1 = Entry(self)
-        self.bar1.grid(column=0,row=4,sticky=N)
+        self.bar1.grid(column=0,row=5,sticky=N)
         self.bar1.config(state=DISABLED)
 
 
         self.line3 = Entry(self)
-        self.line3.grid(column=0,row=5,sticky=N)
+        self.line3.grid(column=0,row=6,sticky=N)
         self.line3.config(state=DISABLED)
 
 
         self.line4 = Entry(self)
-        self.line4.grid(column=0,row=6,sticky=N)
+        self.line4.grid(column=0,row=7,sticky=N)
         self.line4.config(state=DISABLED)
 
         self.line5 = Entry(self)
-        self.line5.grid(column=0,row=7,sticky=N)
+        self.line5.grid(column=0,row=8,sticky=N)
         self.line5.config(state=DISABLED)
 
         self.bar = Entry(self)
-        self.bar.grid(column=0,row=8,sticky=N)
+        self.bar.grid(column=0,row=9,sticky=N)
         self.bar.config(state=DISABLED)
 
         self.line6 = Entry(self)
-        self.line6.grid(column=0,row=9,sticky=N)
+        self.line6.grid(column=0,row=10,sticky=N)
         self.line6.config(state=DISABLED)
 
         self.line7 = Entry(self)
-        self.line7.grid(column=0,row=10,sticky=N)
+        self.line7.grid(column=0,row=11,sticky=N)
         self.line7.config(state=DISABLED)
 
         self.line8 = Entry(self)
-        self.line8.grid(column=0,row=11,sticky=N)
+        self.line8.grid(column=0,row=12,sticky=N)
         self.line8.config(state=DISABLED)
 
+    def counter(self):
+        """
+         Zeitzaehler fuer die Programmzeiten
+        """
 
+        # Methode die im Timer Thread aufgerufen wird
+        self.progindex += 1
 
     def showText(self):
         self.scrollbar = Scrollbar(self)
@@ -82,6 +102,14 @@ class Gui(Frame):
         self.test.grid(column=2,row=0)
         self.scrollbar.config(command=self.test.yview)
         self.test.config(yscrollcommand=self.scrollbar.set,state=DISABLED)
+
+    def showDiagram(self):
+        self.canvas = FigureCanvasTkAgg()
+        self.canvas.show()
+        self.canvas.get_tk_widget().grid(row = 3,column = 2,sticky = S+W)
+        toolbar = NavigationToolbar2TkAgg( self.canvas)
+        toolbar.update()
+        self.canvas._tkcanvas.grid(row = 3, column = 3, sticky = S+W)
 
 
     def buttonCreate(self):
@@ -111,12 +139,12 @@ class Gui(Frame):
 
         self.line4.config(state=NORMAL)
         self.line4.delete(0,END)
-        self.line4.insert(END,"Cooling: " + str(self.sequences[0].programs[1].targetHeatingTemp) + " Celsius")
+        self.line4.insert(END,"Cooling: " + str(self.sequences[0].programs[1].targetCoolingTemp) + " Celsius")
         self.line4.config(state=DISABLED)
 
         self.line5.config(state=NORMAL)
         self.line5.delete(0,END)
-        self.line5.insert(END,"Time: " + str(self.sequences[0].programs[1].targetHeatingTemp) + " Sekunden")
+        self.line5.insert(END,"Time: " + str(self.sequences[0].programs[1].time) + " Sekunden")
         self.line5.config(state=DISABLED)
 
         self.line6.config(state=NORMAL)
@@ -176,12 +204,12 @@ class Gui(Frame):
 
                 self.line4.config(state=NORMAL)
                 self.line4.delete(0,END)
-                self.line4.insert(END,"Cooling: " + str(self.sequences[self.runner].programs[1].targetHeatingTemp) + " Celsius")
+                self.line4.insert(END,"Cooling: " + str(self.sequences[self.runner].programs[1].targetCoolingTemp) + " Celsius")
                 self.line4.config(state=DISABLED)
 
                 self.line5.config(state=NORMAL)
                 self.line5.delete(0,END)
-                self.line5.insert(END,"Time: " + str(self.sequences[self.runner].programs[1].targetHeatingTemp) + " Sekunden")
+                self.line5.insert(END,"Time: " + str(self.sequences[self.runner].programs[1].time) + " Sekunden")
                 self.line5.config(state=DISABLED)
 
                 self.line6.config(state=NORMAL)
@@ -225,12 +253,12 @@ class Gui(Frame):
 
                 self.line4.config(state=NORMAL)
                 self.line4.delete(0,END)
-                self.line4.insert(END,"Cooling: " + str(self.sequences[0].programs[1].targetHeatingTemp) + " Celsius")
+                self.line4.insert(END,"Cooling: " + str(self.sequences[0].programs[1].targetCoolingTemp) + " Celsius")
                 self.line4.config(state=DISABLED)
 
                 self.line5.config(state=NORMAL)
                 self.line5.delete(0,END)
-                self.line5.insert(END,"Time: " + str(self.sequences[0].programs[1].targetHeatingTemp) + " Sekunden")
+                self.line5.insert(END,"Time: " + str(self.sequences[0].programs[1].time) + " Sekunden")
                 self.line5.config(state=DISABLED)
 
                 self.line6.config(state=NORMAL)
@@ -251,34 +279,55 @@ class Gui(Frame):
                 self.runner = 1
 
     def button02_Click(self,event):
-        #oldout = sys.stdout
 
-            prog = self.sequences[self.runner-1].programs[Sublimator.progindex]
+        if self.running == False:
+            self.running = True
+            self.progindex = 0
+            prog = self.sequences[self.runner-1].programs[self.progindex]
             targetheatingtemp = prog.targetHeatingTemp
             targetcoolingtemp = prog.targetCoolingTemp
+
             self.test.config(state=NORMAL)
+            self.test.delete(0.0,END)
+            self.test.insert(END,"Program starts \n")
+
             Sublimator.start(self.sequences[self.runner-1])
+            timer = Timer(prog.time, self.counter)
+            timer.start()
+            oldindex = self.progindex
+
             while Sublimator.running:
-                 self.test.insert(END,"Programm {1}: TargetHeatingTemp:{0} CurrentHeatingTemp:{2} TargetCoolingTemp:{3} CurrentCoolingTemp:{4} ".
+                if self.progindex < len(self.sequences[self.runner-1].programs) and oldindex != self.progindex:
+                    oldindex = self.progindex
+                    prog = self.sequences[self.runner-1].programs[self.progindex]
+                    timer = Timer(prog.time, self.counter)
+                    timer.start()
+                    targetheatingtemp = prog.targetHeatingTemp
+                    targetcoolingtemp = prog.targetCoolingTemp
+        #Abbruchbedingung - Ende der Sequenz erreicht
+                if self.progindex == len(self.sequences[self.runner-1].programs):
+                    running = False
+                 # Pause
+                self.test.insert(END,"Programm {1}: TargetHeatingTemp:{0} CurrentHeatingTemp:{2} TargetCoolingTemp:{3} CurrentCoolingTemp:{4} ".
                       format(targetheatingtemp, self.sequences[self.runner-1].name,10,targetcoolingtemp,10) + "\n")
+                time.sleep(0.3)
+            else:
+                self.test.insert(END,"Program done!\n")
 
-        #sys.stdout = StdoutDirector(self.test)
-
-        #print "Test"
             self.test.config(state=DISABLED)
             if self.scrollbar.get()[1] == 1.0:
                 self.test.yview(END)
-       # sys.stdout = oldout
+            self.running = False
+
 # create the application
 Sublimator.initLogger()
 
 myapp = Gui()
 
-
 #
 # here are method calls to the window manager class
 #
+
 myapp.master.title("Sublimator")
 myapp.master.minsize(860,560)
-
 myapp.mainloop()
