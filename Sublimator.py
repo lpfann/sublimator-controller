@@ -22,6 +22,7 @@ logger = None
 progindex = 0
 timer = None
 datalog = None
+sequences = None
 
 def initLogger():
     """
@@ -173,13 +174,19 @@ def stop():
     running = False
     logger.info("Gestoppt")
 
+def initMain():
+
+    initLogger()
+
+    # Hardware Adapter initalisieren
+    # hardware = hardwareAdapter.hardwareAdapter()
+
+    # Import der zur Verfuegung stehenden Sequenzen
+    global sequences
+    sequences = SequenceHandler.importSequences()
 
 if __name__ == '__main__':
-    initLogger()
-    # Hardware Adapter initalisieren
-    #hardware = hardwareAdapter.hardwareAdapter()
-    # Import der zur Verfuegung stehenden Sequenzen
-    sequences = SequenceHandler.importSequences()
+    initMain()
     currentSequence = sequences[0]
     start(currentSequence)
 
