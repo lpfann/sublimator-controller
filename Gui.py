@@ -7,7 +7,7 @@ from threading import Timer
 import datetime
 import sys
 import matplotlib
-matplotlib.use('TkAgg')
+#matplotlib.use('TkAgg')    # Ist die Zeile noetig? Bei mir sagt er die waere redundant.
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 from matplotlib.backend_bases import key_press_handler
 from matplotlib.figure import Figure
@@ -320,7 +320,7 @@ class Gui(Frame):
             self.running = False
 
 # create the application
-Sublimator.initLogger()
+Sublimator.initMain()
 
 myapp = Gui()
 
