@@ -15,6 +15,11 @@
       "targetHeatingTemp": 40,
       "targetCoolingTemp": 15,
       "time": 2
+    },
+    {
+      "targetHeatingTemp": 48,
+      "targetCoolingTemp": 11,
+      "time": 1
     }
   ]
 }

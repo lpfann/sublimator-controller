@@ -6,86 +6,84 @@ import time
 from threading import Timer
 import datetime
 import sys
-import matplotlib
+#import matplotlib
 #matplotlib.use('TkAgg')    # Ist die Zeile noetig? Bei mir sagt er die waere redundant.
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
-from matplotlib.backend_bases import key_press_handler
-from matplotlib.figure import Figure
+#from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+#from matplotlib.backend_bases import key_press_handler
+#from matplotlib.figure import Figure
 
-class IODirector(object):
-    def __init__(self, text_area):
-        self.text_area = text_area
-
-class StdoutDirector(IODirector):
-    def write(self, msg):
-        self.text_area.insert(END, msg)
-    def flush(self):
-        pass
 
 class Gui(Frame):
 
 
     def __init__(self, master=None):
+        self.coolinglist = []
+        self.heatinglist = []
+        self.timelist = []
+        self.seplist = []
         self.running = FALSE
         self.runner = 1
-        Frame.__init__(self, master, bg = "cyan")
+        Frame.__init__(self, master)
+        self.sequences = SequenceHandler.importSequences()
         self.grid()
         self.showText()
-        self.showTextline()
+        self.showTextline(0)
         self.buttonCreate()
         self.button2Create()
 
 
-    def showTextline(self):
+    def showTextline(self, sequence):
+
         phases = Entry(self)
-        phases.insert(END,"Phases of the Program")
+        phases.insert(END,"Phases of Program")
         phases.grid(column=0,row=1,sticky=N)
-
-        self.line = Entry(self)
-        self.line.grid(column=0,row=2,sticky=N)
-        self.line.config(state=DISABLED)
-
-        self.line1 = Entry(self)
-        self.line1.grid(column=0,row=3,sticky=N)
-        self.line1.config(state=DISABLED)
-
-        self.line2 = Entry(self)
-        self.line2.grid(column=0,row=4,sticky=N)
-        self.line2.config(state=DISABLED)
-
-        self.bar1 = Entry(self)
-        self.bar1.grid(column=0,row=5,sticky=N)
-        self.bar1.config(state=DISABLED)
+        phases.config(state=DISABLED)
+        t = 2
+        for heat in self.heatinglist:
+            heat.destroy()
+        self.heatinglist[:] = []
+        for time in self.timelist:
+            time.destroy()
+        self.timelist[:] = []
+        for cool in self.coolinglist:
+            cool.destroy()
+        self.coolinglist[:] = []
+        for sep in self.seplist:
+            sep.destroy()
+        self.seplist[:] = []
 
 
-        self.line3 = Entry(self)
-        self.line3.grid(column=0,row=6,sticky=N)
-        self.line3.config(state=DISABLED)
+        for i in range(len(self.sequences[sequence].programs)):
+                tlineheat = Entry(self)
+                tlinecool = Entry(self)
+                tlinetime = Entry(self)
+                tlinefree = Entry(self)
+
+                tlinefree.insert(END,"Phase " + str(i+1))
+                tlinefree.grid(column=0,row=t,sticky=N)
+                tlinefree.config(state=(DISABLED))
+                self.seplist.append(tlinefree)
+
+                tlineheat.config(state=NORMAL)
+                tlineheat.insert(END,"Heating: " + str(self.sequences[0].programs[i].targetHeatingTemp) + " Celsius")
+                tlineheat.grid(column=0,row = t+1,sticky=N)
+                tlineheat.config(state=DISABLED)
+                self.heatinglist.append(tlineheat)
+
+                tlinecool.config(state=NORMAL)
+                tlinecool.insert(END,"Cooling: " + str(self.sequences[0].programs[i].targetCoolingTemp) + " Celsius")
+                tlinecool.grid(column=0,row = t+2,sticky=N)
+                tlinecool.config(state=DISABLED)
+                self.coolinglist.append(tlinecool)
 
 
-        self.line4 = Entry(self)
-        self.line4.grid(column=0,row=7,sticky=N)
-        self.line4.config(state=DISABLED)
+                tlinetime.config(state=NORMAL)
+                tlinetime.insert(END,"time: " + str(self.sequences[0].programs[i].time) + " Sekunden")
+                tlinetime.grid(column=0,row = t+3,sticky=N)
+                tlinetime.config(state=DISABLED)
+                self.timelist.append(tlinetime)
 
-        self.line5 = Entry(self)
-        self.line5.grid(column=0,row=8,sticky=N)
-        self.line5.config(state=DISABLED)
-
-        self.bar = Entry(self)
-        self.bar.grid(column=0,row=9,sticky=N)
-        self.bar.config(state=DISABLED)
-
-        self.line6 = Entry(self)
-        self.line6.grid(column=0,row=10,sticky=N)
-        self.line6.config(state=DISABLED)
-
-        self.line7 = Entry(self)
-        self.line7.grid(column=0,row=11,sticky=N)
-        self.line7.config(state=DISABLED)
-
-        self.line8 = Entry(self)
-        self.line8.grid(column=0,row=12,sticky=N)
-        self.line8.config(state=DISABLED)
+                t+=4
 
     def counter(self):
         """
@@ -103,65 +101,21 @@ class Gui(Frame):
         self.scrollbar.config(command=self.test.yview)
         self.test.config(yscrollcommand=self.scrollbar.set,state=DISABLED)
 
-    def showDiagram(self):
-        self.canvas = FigureCanvasTkAgg()
-        self.canvas.show()
-        self.canvas.get_tk_widget().grid(row = 3,column = 2,sticky = S+W)
-        toolbar = NavigationToolbar2TkAgg( self.canvas)
-        toolbar.update()
-        self.canvas._tkcanvas.grid(row = 3, column = 3, sticky = S+W)
+
+#def showDiagram(self):
+   #     self.canvas = FigureCanvasTkAgg()
+    #    self.canvas.show()
+     #   self.canvas.get_tk_widget().grid(row = 3,column = 2,sticky = S+W)
+      #  toolbar = NavigationToolbar2TkAgg( self.canvas)
+       # toolbar.update()
+        #self.canvas._tkcanvas.grid(row = 3, column = 3, sticky = S+W)
+
 
 
     def buttonCreate(self):
         self.button01 = Button(self)
-        self.sequences = SequenceHandler.importSequences()
+
         self.button01["text"] = self.sequences[0].name
-
-        self.line.config(state=NORMAL)
-        self.line.delete(0,END)
-        self.line.insert(END,"Heating: " + str(self.sequences[0].programs[0].targetHeatingTemp) + " Celsius")
-        self.line.config(state=DISABLED)
-
-        self.line1.config(state=NORMAL)
-        self.line1.delete(0,END)
-        self.line1.insert(END,"Cooling: " + str(self.sequences[0].programs[0].targetCoolingTemp) + " Celsius")
-        self.line1.config(state=DISABLED)
-
-        self.line2.config(state=NORMAL)
-        self.line2.delete(0,END)
-        self.line2.insert(END,"Time: " + str(self.sequences[0].programs[0].time) + " Sekunden")
-        self.line2.config(state=DISABLED)
-
-        self.line3.config(state=NORMAL)
-        self.line3.delete(0,END)
-        self.line3.insert(END,"Heating: " + str(self.sequences[0].programs[1].targetHeatingTemp) + " Celsius")
-        self.line3.config(state=DISABLED)
-
-        self.line4.config(state=NORMAL)
-        self.line4.delete(0,END)
-        self.line4.insert(END,"Cooling: " + str(self.sequences[0].programs[1].targetCoolingTemp) + " Celsius")
-        self.line4.config(state=DISABLED)
-
-        self.line5.config(state=NORMAL)
-        self.line5.delete(0,END)
-        self.line5.insert(END,"Time: " + str(self.sequences[0].programs[1].time) + " Sekunden")
-        self.line5.config(state=DISABLED)
-
-        self.line6.config(state=NORMAL)
-        self.line6.delete(0,END)
-        self.line6.insert(END,"Heating: " + str(self.sequences[0].programs[2].targetHeatingTemp) + " Celsius")
-        self.line6.config(state=DISABLED)
-
-        self.line7.config(state=NORMAL)
-        self.line7.delete(0,END)
-        self.line7.insert(END,"Cooling: " + str(self.sequences[0].programs[2].targetCoolingTemp) + " Celsius")
-        self.line7.config(state=DISABLED)
-
-        self.line8.config(state=NORMAL)
-        self.line8.delete(0,END)
-        self.line8.insert(END,"Time: " + str(self.sequences[0].programs[2].time) + " Sekunden")
-        self.line8.config(state=DISABLED)
-
         self.button01.bind("<Button-1>",self.button01_Click)
         self.button01.grid(column=0,row=0,sticky=W+E)
 
@@ -179,104 +133,14 @@ class Gui(Frame):
 
         if len(self.sequences) > 1:
 
-            if(self.runner < len(self.sequences)):
+           if(self.runner < len(self.sequences)):
                 self.button01["text"] = self.sequences[self.runner].name
-                self.line.config(state=NORMAL)
-                self.line.delete(0,END)
-                self.line.insert(END,"Heating: " + str(self.sequences[self.runner].programs[0].targetHeatingTemp)+ " Celsius")
-                self.line.config(state=DISABLED)
-
-
-                self.line1.config(state=NORMAL)
-                self.line1.delete(0,END)
-                self.line1.insert(END,"Cooling: " + str(self.sequences[self.runner].programs[0].targetCoolingTemp) + " Celsius")
-                self.line1.config(state=DISABLED)
-
-                self.line2.config(state=NORMAL)
-                self.line2.delete(0,END)
-                self.line2.insert(END,"Time: " + str(self.sequences[self.runner].programs[0].time) + " Sekunden")
-                self.line2.config(state=DISABLED)
-
-                self.line3.config(state=NORMAL)
-                self.line3.delete(0,END)
-                self.line3.insert(END,"Heating: " + str(self.sequences[self.runner].programs[1].targetHeatingTemp) + " Celsius")
-                self.line3.config(state=DISABLED)
-
-                self.line4.config(state=NORMAL)
-                self.line4.delete(0,END)
-                self.line4.insert(END,"Cooling: " + str(self.sequences[self.runner].programs[1].targetCoolingTemp) + " Celsius")
-                self.line4.config(state=DISABLED)
-
-                self.line5.config(state=NORMAL)
-                self.line5.delete(0,END)
-                self.line5.insert(END,"Time: " + str(self.sequences[self.runner].programs[1].time) + " Sekunden")
-                self.line5.config(state=DISABLED)
-
-                self.line6.config(state=NORMAL)
-                self.line6.delete(0,END)
-                self.line6.insert(END,"Heating: " + str(self.sequences[self.runner].programs[2].targetHeatingTemp) + " Celsius")
-                self.line6.config(state=DISABLED)
-
-                self.line7.config(state=NORMAL)
-                self.line7.delete(0,END)
-                self.line7.insert(END,"Cooling: " + str(self.sequences[self.runner].programs[2].targetCoolingTemp) + " Celsius")
-                self.line7.config(state=DISABLED)
-
-                self.line8.config(state=NORMAL)
-                self.line8.delete(0,END)
-                self.line8.insert(END,"Time: " + str(self.sequences[self.runner].programs[2].time) + " Sekunden")
-                self.line8.config(state=DISABLED)
-
+                self.showTextline(self.runner)
                 self.runner+=1
-            else:
-                self.button01["text"] = self.sequences[0].name
-
-                self.line.config(state=NORMAL)
-                self.line.delete(0,END)
-                self.line.insert(END,"Heating: " + str(self.sequences[0].programs[0].targetHeatingTemp) + " Celsius")
-                self.line.config(state=DISABLED)
-
-                self.line1.config(state=NORMAL)
-                self.line1.delete(0,END)
-                self.line1.insert(END,"Cooling: " + str(self.sequences[0].programs[0].targetCoolingTemp) + " Celsius")
-                self.line1.config(state=DISABLED)
-
-                self.line2.config(state=NORMAL)
-                self.line2.delete(0,END)
-                self.line2.insert(END,"Time: " + str(self.sequences[0].programs[0].time) + " Sekunden")
-                self.line2.config(state=DISABLED)
-
-                self.line3.config(state=NORMAL)
-                self.line3.delete(0,END)
-                self.line3.insert(END,"Heating: " + str(self.sequences[0].programs[1].targetHeatingTemp) + " Celsius")
-                self.line3.config(state=DISABLED)
-
-                self.line4.config(state=NORMAL)
-                self.line4.delete(0,END)
-                self.line4.insert(END,"Cooling: " + str(self.sequences[0].programs[1].targetCoolingTemp) + " Celsius")
-                self.line4.config(state=DISABLED)
-
-                self.line5.config(state=NORMAL)
-                self.line5.delete(0,END)
-                self.line5.insert(END,"Time: " + str(self.sequences[0].programs[1].time) + " Sekunden")
-                self.line5.config(state=DISABLED)
-
-                self.line6.config(state=NORMAL)
-                self.line6.delete(0,END)
-                self.line6.insert(END,"Heating: " + str(self.sequences[0].programs[2].targetHeatingTemp) + " Celsius")
-                self.line6.config(state=DISABLED)
-
-                self.line7.config(state=NORMAL)
-                self.line7.delete(0,END)
-                self.line7.insert(END,"Cooling: " + str(self.sequences[0].programs[2].targetCoolingTemp) + " Celsius")
-                self.line7.config(state=DISABLED)
-
-                self.line8.config(state=NORMAL)
-                self.line8.delete(0,END)
-                self.line8.insert(END,"Time: " + str(self.sequences[0].programs[2].time) + " Sekunden")
-                self.line8.config(state=DISABLED)
-
-                self.runner = 1
+           else:
+               self.showTextline(0)
+               self.button01["text"] = self.sequences[0].name
+               self.runner = 1
 
     def button02_Click(self,event):
 
