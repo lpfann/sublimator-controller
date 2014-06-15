@@ -1,4 +1,5 @@
 import _tkinter
+import logging
 from Tkinter import *
 import SequenceHandler
 import Sublimator
@@ -6,11 +7,28 @@ import time
 from threading import Timer
 import datetime
 import sys
-#import matplotlib
-#matplotlib.use('TkAgg')    # Ist die Zeile noetig? Bei mir sagt er die waere redundant.
-#from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
-#from matplotlib.backend_bases import key_press_handler
-#from matplotlib.figure import Figure
+import matplotlib
+matplotlib.use('TkAgg')    # Ist die Zeile noetig? Bei mir sagt er die waere redundant.
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+from matplotlib.backend_bases import key_press_handler
+from matplotlib.figure import Figure
+
+
+class WidgetLogger(logging.Handler):
+    '''
+    Erlaubt es, die Konsolenausgabe in einem Widget anzuzeigen
+
+    '''
+    def __init__(self, widget):
+        logging.Handler.__init__(self)
+        self.widget = widget
+        self.formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s\n')
+
+    def emit(self, record):
+        r = self.format(record)
+        self.widget.configure(state=NORMAL)
+        self.widget.insert(END, r)
+        self.widget.configure(state=DISABLED)
 
 
 class Gui(Frame):
@@ -85,21 +103,17 @@ class Gui(Frame):
 
                 t+=4
 
-    def counter(self):
-        """
-         Zeitzaehler fuer die Programmzeiten
-        """
-
-        # Methode die im Timer Thread aufgerufen wird
-        self.progindex += 1
 
     def showText(self):
         self.scrollbar = Scrollbar(self)
         self.test = Text(self,height=10,width=120)
+        logger = logging.getLogger()
+        logger.addHandler(WidgetLogger(self.test))
         self.scrollbar.grid(column=3,row=0,sticky=N+S)
         self.test.grid(column=2,row=0)
         self.scrollbar.config(command=self.test.yview)
         self.test.config(yscrollcommand=self.scrollbar.set,state=DISABLED)
+
 
 
 #def showDiagram(self):
@@ -122,7 +136,7 @@ class Gui(Frame):
 
     def button2Create(self):
         self.button02 = Button(self)
-        self.button02["text"] = "starten"
+        self.button02["text"] = "Start"
         programm = Label(text="Waehle Programm aus \n und starte dieses!")
         self.button02.bind("<Button-1>",self.button02_Click)
         self.button02.grid(column=1,row=0,sticky=W)
@@ -144,44 +158,15 @@ class Gui(Frame):
 
     def button02_Click(self,event):
 
-        if self.running == False:
-            self.running = True
-            self.progindex = 0
-            prog = self.sequences[self.runner-1].programs[self.progindex]
-            targetheatingtemp = prog.targetHeatingTemp
-            targetcoolingtemp = prog.targetCoolingTemp
-
-            self.test.config(state=NORMAL)
-            self.test.delete(0.0,END)
-            self.test.insert(END,"Program starts \n")
-
+        if not Sublimator.running:
             Sublimator.start(self.sequences[self.runner-1])
-            timer = Timer(prog.time, self.counter)
-            timer.start()
-            oldindex = self.progindex
+            self.button02.config(text="Stop")
 
-            while Sublimator.running:
-                if self.progindex < len(self.sequences[self.runner-1].programs) and oldindex != self.progindex:
-                    oldindex = self.progindex
-                    prog = self.sequences[self.runner-1].programs[self.progindex]
-                    timer = Timer(prog.time, self.counter)
-                    timer.start()
-                    targetheatingtemp = prog.targetHeatingTemp
-                    targetcoolingtemp = prog.targetCoolingTemp
-        #Abbruchbedingung - Ende der Sequenz erreicht
-                if self.progindex == len(self.sequences[self.runner-1].programs):
-                    running = False
-                 # Pause
-                self.test.insert(END,"Programm {1}: TargetHeatingTemp:{0} CurrentHeatingTemp:{2} TargetCoolingTemp:{3} CurrentCoolingTemp:{4} ".
-                      format(targetheatingtemp, self.sequences[self.runner-1].name,10,targetcoolingtemp,10) + "\n")
-                time.sleep(0.3)
-            else:
-                self.test.insert(END,"Program done!\n")
-
-            self.test.config(state=DISABLED)
             if self.scrollbar.get()[1] == 1.0:
                 self.test.yview(END)
-            self.running = False
+        else:
+            Sublimator.stop()
+            self.button02.config(text="Start")
 
 # create the application
 Sublimator.initMain()

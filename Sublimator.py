@@ -13,10 +13,10 @@ import logging
 import SequenceHandler
 #import hardwareAdapter
 import datetime
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 
-running = True
+running = False
 hardware = None
 logger = None
 progindex = 0
@@ -88,6 +88,7 @@ def controller(currSeq):
     oldindex = progindex
     running = True
     datalog = []
+    #plt = initlog()
     # Schleife die solange läuft, bis die Sequenz komplett durchlaufen ist oder von außen abgebrochen wird.
     while running:
         # Ablauf der Sequenz steuern
@@ -113,7 +114,7 @@ def controller(currSeq):
         time.sleep(0.3)
 
     writedatatofile(datalog, currSeq) #Datenlog schreiben
-    logger.info(u"Sequenz abgelaufen")
+    logger.info(u"Sequenz beendet")
 
 
 def writedatatofile(datalog, currSeq):
@@ -133,22 +134,19 @@ def writedatatofile(datalog, currSeq):
     logger.info("Logdatei mit Messdaten wurde erstellt: {}".format(filename))
 
 
-def plotlog(data):
-    """
-         Plottet die Daten als Temperaturkurve
-    :param data: Daten, die vom Controller gesammelt wurden
-    """
-    fig, ax = plt.subplots()
-    ax.plot([x[0] for x in data],'r--')#targetHeating
-    ax.plot([x[1] for x in data],'r-')#heating
-    ax.plot([x[2] for x in data],'b--')#targetCooling
-    ax.plot([x[3] for x in data],'b-')#cooling
-    maxTemp = max([x[0] for x in data])
-    plt.axis([0, len(data), 0, maxTemp+10]) #xmin,xmax,ymin,ymax
-    plt.title("Programmablauf")
-    plt.xlabel("Zeit")
-    plt.ylabel(u"Temperatur °C")
-    plt.show() # !Stoppt den momentanen Thread solange bis Plot geschlossen wird!
+# def initlog():
+#     """
+#          Plottet die Daten als Temperaturkurve
+#     :param data: Daten, die vom Controller gesammelt wurden
+#     """
+#     fig = plt.figure()
+#     plt.axis([0, 1000, 0, 180]) #xmin,xmax,ymin,ymax
+#     plt.title("Programmablauf")
+#     plt.xlabel("Zeit")
+#     plt.ylabel(u"Temperatur °C")
+#     plt.ion()
+#     plt.show()
+#     return plt
 
 
 def start(sequence):
@@ -162,6 +160,8 @@ def start(sequence):
     logger.info("Gestartet")
     t = Thread(target=controller,args=(sequence,))
     t.start()
+    #t.join()
+
 
 
 def stop():
@@ -172,7 +172,7 @@ def stop():
     """
     global running
     running = False
-    logger.info("Gestoppt")
+    logger.info("Abgebrochen")
 
 def initMain():
 
