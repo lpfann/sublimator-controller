@@ -23,6 +23,7 @@ progindex = 0
 timer = None
 datalog = None
 sequences = None
+datalog = None
 
 def initLogger():
     """
