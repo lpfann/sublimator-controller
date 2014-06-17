@@ -13,6 +13,7 @@ import logging
 import SequenceHandler
 #import hardwareAdapter
 import datetime
+import StringIO
 #import matplotlib.pyplot as plt
 
 
@@ -24,6 +25,7 @@ timer = None
 datalog = None
 sequences = None
 datalog = None
+log_capture_string = None
 
 def initLogger():
     """
@@ -31,7 +33,7 @@ def initLogger():
         benutzt werden kann.
         Formatierung und verschiedene Handler für Consolen und Datei Logging werden hier konfiguriert
     """
-    global logger
+    global logger, log_capture_string
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
     filehandler = logging.FileHandler('main.log')
@@ -41,6 +43,11 @@ def initLogger():
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     filehandler.setFormatter(formatter)
     consolehandler.setFormatter(formatter)
+    log_capture_string = StringIO.StringIO()
+    ch = logging.StreamHandler(log_capture_string)
+    ch.setLevel(logging.DEBUG)
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
     logger.addHandler(filehandler)
     logger.addHandler(consolehandler)
 
@@ -184,7 +191,7 @@ def initMain():
 
     # Import der zur Verfuegung stehenden Sequenzen
     global sequences
-    sequences = SequenceHandler.importSequences()
+    sequences = SequenceHandler.importSequences()           
 
 if __name__ == '__main__':
     initMain()
