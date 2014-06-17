@@ -1,0 +1,25 @@
+{
+  "name": "Langsam",
+  "programs": [
+    {
+      "targetHeatingTemp": 45,
+      "targetCoolingTemp": 9,
+      "time": 4
+    },
+    {
+      "targetHeatingTemp": 150,
+      "targetCoolingTemp": 8,
+      "time": 3
+    },
+    {
+      "targetHeatingTemp": 40,
+      "targetCoolingTemp": 15,
+      "time": 2
+    },
+    {
+      "targetHeatingTemp": 48,
+      "targetCoolingTemp": 11,
+      "time": 1
+    }
+  ]
+}
