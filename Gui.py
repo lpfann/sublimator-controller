@@ -26,6 +26,8 @@ class WidgetLogger(logging.Handler):
     def emit(self, record):
         r = self.format(record)
         self.widget.configure(state=NORMAL)
+        if len(self.widget.get(1.0,END)) > 50:
+        	self.widget.delete(1.0)
         self.widget.insert(END, r)
         self.widget.configure(state=DISABLED)
 
@@ -168,7 +170,7 @@ class Gui(Frame):
 
         self.canvas = FigureCanvasTkAgg(self.fig, self)
         self.canvas.show()
-        self.canvas.get_tk_widget().pack(fill=BOTH, expand=1)
+        self.canvas.get_tk_widget().grid()
         self.canvas._tkcanvas.grid(column=2, row=1)
 
 
