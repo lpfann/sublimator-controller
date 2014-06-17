@@ -13,25 +13,6 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 from matplotlib import pyplot as plt
 
 
-class WidgetLogger(logging.Handler):
-    '''
-    Erlaubt es, die Konsolenausgabe in einem Widget anzuzeigen
-    '''
-
-    def __init__(self, widget):
-        logging.Handler.__init__(self)
-        self.widget = widget
-        self.formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s\n')
-
-    def emit(self, record):
-        r = self.format(record)
-        self.widget.configure(state=NORMAL)
-        if len(self.widget.get(1.0,END)) > 50:
-            self.widget.delete(1.0)
-        self.widget.insert(END, r)
-        self.widget.configure(state=DISABLED)
-
-
 class Gui(Frame):
     def __init__(self, master=None):
         self.coolinglist = []
