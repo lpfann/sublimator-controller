@@ -13,25 +13,6 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 from matplotlib import pyplot as plt
 
 
-class WidgetLogger(logging.Handler):
-    '''
-    Erlaubt es, die Konsolenausgabe in einem Widget anzuzeigen
-    '''
-
-    def __init__(self, widget):
-        logging.Handler.__init__(self)
-        self.widget = widget
-        self.formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s\n')
-
-    def emit(self, record):
-        r = self.format(record)
-        self.widget.configure(state=NORMAL)
-        if len(self.widget.get(1.0,END)) > 50:
-        	self.widget.delete(1.0)
-        self.widget.insert(END, r)
-        self.widget.configure(state=DISABLED)
-
-
 class Gui(Frame):
     def __init__(self, master=None):
         self.coolinglist = []
@@ -40,6 +21,7 @@ class Gui(Frame):
         self.seplist = []
         self.running = FALSE
         self.runner = 1
+        self.log = []
         self.sequences = Sublimator.sequences
         Frame.__init__(self, master)
         self.grid()
@@ -268,6 +250,20 @@ class Gui(Frame):
 		
 
 
+    def updateConsole(self):
+        '''
+        Updatet die Konsolenausgabe.
+        Verhindert Probleme mit Multithrading und Tkinter...
+        '''
+
+        self.test.configure(state=NORMAL)
+        self.test.delete(1.0,END)
+        self.log = Sublimator.log_capture_string.getvalue()
+        self.test.insert(END,self.log)
+        self.test.configure(state=DISABLED)
+        self.after(1000,self.updateConsole)
+
+
 def _quit():
     '''
     Sorgt dafür das alle Threads in Tkinter und matplotlib richtig geschlossen werden
@@ -286,4 +282,5 @@ if __name__ == '__main__':
     myapp.master.title("Sublimator")
     myapp.master.minsize(860, 560)
     myapp.after(300, myapp.updatePlot)
+    myapp.after(1000,myapp.updateConsole)
     myapp.mainloop()
