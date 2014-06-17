@@ -1,8 +1,0 @@
-{
-    "Name": "Testsequenz",
-    "Sequenz" :[
-    {"Temp" : 50, "Time": 10},
-    {"Temp" : 70, "Time": 5},
-    {"Temp" : 20, "Time": 10}
-    ]
-}
