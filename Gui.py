@@ -6,16 +6,15 @@ import Sublimator
 import matplotlib
 import numpy as np
 
-MAX_NUM_PLOTDATA = 100
-
 matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 from matplotlib import pyplot as plt
 
+MAX_NUM_PLOTDATA = 100
 
 class Gui(Frame):
-
-    def __init__(self, master=None):
+    def __init__(self, sublimator, master=None):
+        self.sublimator = sublimator
         self.coolinglist = []
         self.heatinglist = []
         self.timelist = []
@@ -23,7 +22,7 @@ class Gui(Frame):
         self.running = FALSE
         self.runner = 1
         self.log = []
-        self.sequences = Sublimator.sequences
+        self.sequences = self.sublimator.sequences
         Frame.__init__(self, master)
         self.grid()
         self.showText()
@@ -129,8 +128,8 @@ class Gui(Frame):
 
     def button02_Click(self, event):
 
-        if not Sublimator.running:
-            Sublimator.start(self.sequences[self.runner - 1])
+        if not self.sublimator.running:
+            self.sublimator.start(self.sequences[self.runner - 1])
             self.plotData = [(0, 0, 0, 0)] * MAX_NUM_PLOTDATA
             self.button02.config(text="Stop")
 
@@ -138,7 +137,7 @@ class Gui(Frame):
                 self.textField.yview(END)
 
         else:
-            Sublimator.stop()
+            self.sublimator.stop()
             self.button02.config(text="Start")
 
     def saveProgEvent(self, event):
@@ -207,8 +206,8 @@ class Gui(Frame):
         self.canvas._tkcanvas.grid(column=2, row=1, rowspan=100, sticky=W + S)
 
     def updatePlot(self):
-        if Sublimator.running:
-            data = Sublimator.datalog
+        if self.sublimator.running:
+            data = self.sublimator.datalog
 
             # heatTempData = [x[1] for x in data]
             # ymin = float(min(heatTempData)) - 10
@@ -239,7 +238,7 @@ class Gui(Frame):
             self.fig.canvas.draw()
 
         self.after(1000, self.updatePlot)
-        if not Sublimator.running:
+        if not self.sublimator.running:
             self.button02.config(text="Start")
 
     def updateConsole(self):
@@ -250,7 +249,7 @@ class Gui(Frame):
 
         self.textField.configure(state=NORMAL)
         self.textField.delete(1.0, END)
-        self.log = Sublimator.log_capture_string.getvalue()
+        self.log = self.sublimator.log_capture_string.getvalue()
         self.textField.insert(END, self.log)
         self.textField.configure(state=DISABLED)
         self.after(1000, self.updateConsole)
@@ -266,10 +265,10 @@ def _quit():
 
 
 if __name__ == '__main__':
-    Sublimator.initMain()
+    sublimator = Sublimator.Sublimator()
     root = Tk()
     root.protocol("WM_DELETE_WINDOW", _quit)
-    myapp = Gui(root)
+    myapp = Gui(sublimator, master=root)
 
     myapp.master.title("Sublimator")
     myapp.master.minsize(860, 560)
