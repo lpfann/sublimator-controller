@@ -30,6 +30,7 @@ class Gui(Frame):
         self.buttonCreate()
         self.button2Create()
         self.showDiagram()
+	self.saveProgram()
 
 
     def showTextline(self, sequence):
@@ -59,7 +60,7 @@ class Gui(Frame):
             tlinefree = Entry(self)
 
             tlinefree.insert(END, "Phase " + str(i + 1))
-            tlinefree.grid(column=0, row=t, sticky=N)
+	    tlinefree.grid(column=0, row=t, sticky=N)
             tlinefree.config(state=(DISABLED))
             self.seplist.append(tlinefree)
 
@@ -86,16 +87,17 @@ class Gui(Frame):
 
     def showText(self):
         self.scrollbar = Scrollbar(self)
-        self.test = Text(self, height=10, width=120)
+        self.textField = Text(self, height=10, width=90)
+        logger = logging.getLogger()
+        logger.addHandler(WidgetLogger(self.textField))
         self.scrollbar.grid(column=3, row=0, sticky=N + S)
-        self.test.grid(column=2, row=0)
-        self.scrollbar.config(command=self.test.yview)
-        self.test.config(yscrollcommand=self.scrollbar.set, state=DISABLED)
+        self.textField.grid(column=2, row=0)
+        self.scrollbar.config(command=self.textField.yview)
+        self.textField.config(yscrollcommand=self.scrollbar.set, state=DISABLED)
 
 
     def buttonCreate(self):
         self.button01 = Button(self)
-
         self.button01["text"] = self.sequences[0].name
         self.button01.bind("<Button-1>", self.button01_Click)
         self.button01.grid(column=0, row=0, sticky=W + E)
@@ -104,10 +106,15 @@ class Gui(Frame):
     def button2Create(self):
         self.button02 = Button(self)
         self.button02["text"] = "Start"
-        programm = Label(text="Waehle Programm aus \n und starte dieses!")
         self.button02.bind("<Button-1>", self.button02_Click)
         self.button02.grid(column=1, row=0, sticky=W)
-        programm.grid(column=1, row=0, sticky=W)
+        
+	
+    def saveProgram(self):
+	    self.saveProg = Button(self)
+	    self.saveProg["text"] = "new Program"
+	    self.saveProg.bind("<Button-1>", self.saveProgEvent)
+	    self.saveProg.grid(column=4, row = 1, sticky=E)
 
 
     def button01_Click(self, event):
@@ -131,12 +138,63 @@ class Gui(Frame):
             self.button02.config(text="Stop")
 
             if self.scrollbar.get()[1] == 1.0:
-                self.test.yview(END)
+                self.textField.yview(END)
+	    	
         else:
             Sublimator.stop()
             self.button02.config(text="Start")
 
-
+    def saveProgEvent(self,event):
+	    def buttonClose():
+		    saveWindow.quit()
+		    
+	    saveWindow = Toplevel()
+	    saveWindow.title("Save Program")
+	    text = """{
+ "name": (programname),
+ "programs": [
+   {
+     "targetHeatingTemp": (temp),
+     "targetCoolingTemp": (temp),
+     "time": (time)
+   },
+   {
+     "targetHeatingTemp": (temp),
+     "targetCoolingTemp": (temp),
+     "time": (time)
+   },
+   {
+     "targetHeatingTemp": (temp),
+     "targetCoolingTemp": (temp),
+     "time": (time)
+   },
+   {
+      "targetHeatingTemp": (temp),
+      "targetCoolingTemp": (temp),
+      "time": (time)
+    }
+  ]	
+}"""
+	    def buttonSave():
+		
+	    
+	    saveData = Text(master=saveWindow)
+	    dataScrollbar = Scrollbar(master=saveWindow)
+            dataScrollbar.grid(column=0, row=0, sticky=N + S)
+	    saveData.insert(END,text)
+            saveData.grid(column=1, row=0)
+            dataScrollbar.config(command=saveData.yview)
+            saveData.config(yscrollcommand=dataScrollbar.set)
+	    
+	    saveButton = Button(master=saveWindow)
+	    saveButton["text"] = "save"
+	    saveButton.bind("<Button-1>",buttonSave)
+	    saveButton.grid(column=0,row = 1)
+	    
+	    
+	    		         
+			
+	    
     def showDiagram(self):
         self.plotData = [(0, 0, 0, 0)] * MAX_NUM_PLOTDATA
         self.fig, self.ax = plt.subplots()
@@ -151,7 +209,7 @@ class Gui(Frame):
         self.canvas = FigureCanvasTkAgg(self.fig, self)
         self.canvas.show()
         self.canvas.get_tk_widget().grid()
-        self.canvas._tkcanvas.grid(column=2, row=1)
+        self.canvas._tkcanvas.grid(column=2, row=1, rowspan=100,sticky=W+S)
 
 
     def updatePlot(self):
@@ -187,6 +245,9 @@ class Gui(Frame):
             self.fig.canvas.draw()
 
         self.after(1000, self.updatePlot)
+	if not Sublimator.running:
+		self.button02.config(text="Start")
+		
 
 
     def updateConsole(self):
