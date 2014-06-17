@@ -66,21 +66,21 @@ class Gui(Frame):
 
             tlineheat.config(state=NORMAL)
             tlineheat.insert(
-                END, "Heating: " + str(self.sequences[0].programs[i].targetHeatingTemp) + " Celsius")
+                END, "Heating: " + str(self.sequences[sequence].programs[i].targetHeatingTemp) + " Celsius")
             tlineheat.grid(column=0, row=t + 1, sticky=N)
             tlineheat.config(state=DISABLED)
             self.heatinglist.append(tlineheat)
 
             tlinecool.config(state=NORMAL)
             tlinecool.insert(
-                END, "Cooling: " + str(self.sequences[0].programs[i].targetCoolingTemp) + " Celsius")
+                END, "Cooling: " + str(self.sequences[sequence].programs[i].targetCoolingTemp) + " Celsius")
             tlinecool.grid(column=0, row=t + 2, sticky=N)
             tlinecool.config(state=DISABLED)
             self.coolinglist.append(tlinecool)
 
             tlinetime.config(state=NORMAL)
             tlinetime.insert(
-                END, "time: " + str(self.sequences[0].programs[i].time) + " Sekunden")
+                END, "time: " + str(self.sequences[sequence].programs[i].time) + " Sekunden")
             tlinetime.grid(column=0, row=t + 3, sticky=N)
             tlinetime.config(state=DISABLED)
             self.timelist.append(tlinetime)
@@ -97,6 +97,13 @@ class Gui(Frame):
             yscrollcommand=self.scrollbar.set, state=DISABLED)
 
     def buttonCreate(self):
+        testsequence = [x.name for x in self.sequences]
+        self.variable = StringVar(self)
+        self.variable.set(self.sequences[0].name)
+        self.dropdown = apply(OptionMenu, (self, self.variable) + tuple(testsequence))
+        self.dropdown.config(bg='RED')
+        self.dropdown.bind('<<Menuselect>>',self.showTextline(testsequence.index(self.variable.get())))
+        self.dropdown.grid(column = 5, row = 5, sticky = W+E) 
         self.button01 = Button(self)
         self.button01["text"] = self.sequences[0].name
         self.button01.bind("<Button-1>", self.button01_Click)
