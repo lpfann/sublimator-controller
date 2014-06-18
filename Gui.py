@@ -20,26 +20,86 @@ class Gui(Frame):
         self.heatinglist = []
         self.timelist = []
         self.seplist = []
-        self.running = FALSE
-        self.runner = 1
+        self.running = FALSE    
         self.log = []
         self.sequences = Sublimator.sequences
-        Frame.__init__(self, master)
+	self.testsequence = [x.name for x in self.sequences]
+        self.variable = StringVar(master)
+        self.variable.set(self.sequences[0].name)
+	self.runner = 0
+	
+	Frame.__init__(self, master)
         self.grid()
+	self.buttoncontainer = Frame(master=self,bg="red")
+	self.buttoncontainer.grid(column = 0, row = 0)
+	
+	self.container1()
         self.showText()
-        self.showTextline(0)
+        self.showTextline(event=None)
         self.buttonCreate()
         self.button2Create()
         self.showDiagram()
         self.saveProgram()
+        
+    def container1(self):
+	self.containercan = Canvas(self, borderwidth=0, background="red")
+        self.infocontainer = Frame(self.containercan, background="green")
+        self.vsb = Scrollbar(self.containercan, orient="vertical", command=self.containercan.yview)
+        self.containercan.configure(yscrollcommand=self.vsb.set)
+	self.containercan.grid(column = 0, row = 2)
+	self.infocontainer.pack(side="left",fill="both")
+	self.vsb.pack(side="right",fill="y")
+	
+    def showText(self):
+        self.scrollbar = Scrollbar(self)
+        self.textField = Text(self, height=10, width=90)
+        self.scrollbar.grid(column=3, row=0, sticky=N + S)
+        self.textField.grid(column=2, row=0)
+        self.scrollbar.config(command=self.textField.yview)
+        self.textField.config(
+            yscrollcommand=self.scrollbar.set, state=DISABLED)
 
-    def showTextline(self, sequence):
+    def buttonCreate(self):
+        
+        
+        self.dropdown = apply(OptionMenu, (self.buttoncontainer, self.variable) + tuple(self.testsequence))
+        self.dropdown.bind("<<MenuSelect>>", self.showTextline)
+        self.dropdown.grid(column = 0, row = 0, sticky = W+E) 
+        
 
-        phases = Entry(self)
+    def button2Create(self):
+        self.button02 = Button(self.buttoncontainer)
+        self.button02["text"] = "Start"
+        self.button02.bind("<Button-1>", self.button02_Click)
+        self.button02.grid(column=1, row=0, sticky=W)
+
+    def saveProgram(self):
+        self.saveProg = Button(self.buttoncontainer)
+        self.saveProg["text"] = "new Program"
+        self.saveProg.bind("<Button-1>", self.saveProgEvent)
+        self.saveProg.grid(column=0, row=1, sticky=E)
+
+    def button02_Click(self, event):
+
+        if not Sublimator.running:
+            Sublimator.start(self.sequences[self.runner])
+            self.plotData = [(0, 0, 0, 0)] * MAX_NUM_PLOTDATA
+            self.button02.config(text="Stop")
+
+            if self.scrollbar.get()[1] == 1.0:
+                self.textField.yview(END)
+
+        else:
+            Sublimator.stop()
+            self.button02.config(text="Start")
+	   
+    def showTextline(self, event):
+	self.runner = self.testsequence.index(self.variable.get())
+        phases = Entry(self.infocontainer)
         phases.insert(END, "Phases of Program")
-        phases.grid(column=0, row=1, sticky=N)
+        phases.grid(column=0, row=0, sticky=N)
         phases.config(state=DISABLED)
-        t = 2
+        t = 0
         for heat in self.heatinglist:
             heat.destroy()
         self.heatinglist[:] = []
@@ -53,11 +113,11 @@ class Gui(Frame):
             sep.destroy()
         self.seplist[:] = []
 
-        for i in range(len(self.sequences[sequence].programs)):
-            tlineheat = Entry(self)
-            tlinecool = Entry(self)
-            tlinetime = Entry(self)
-            tlinefree = Entry(self)
+        for i in range(len(self.sequences[self.runner].programs)):
+            tlineheat = Entry(self.infocontainer)
+            tlinecool = Entry(self.infocontainer)
+            tlinetime = Entry(self.infocontainer)
+            tlinefree = Entry(self.infocontainer)
 
             tlinefree.insert(END, "Phase " + str(i + 1))
             tlinefree.grid(column=0, row=t, sticky=N)
@@ -66,87 +126,26 @@ class Gui(Frame):
 
             tlineheat.config(state=NORMAL)
             tlineheat.insert(
-                END, "Heating: " + str(self.sequences[sequence].programs[i].targetHeatingTemp) + " Celsius")
+                END, "Heating: " + str(self.sequences[self.runner].programs[i].targetHeatingTemp) + " Celsius")
             tlineheat.grid(column=0, row=t + 1, sticky=N)
             tlineheat.config(state=DISABLED)
             self.heatinglist.append(tlineheat)
 
             tlinecool.config(state=NORMAL)
             tlinecool.insert(
-                END, "Cooling: " + str(self.sequences[sequence].programs[i].targetCoolingTemp) + " Celsius")
+                END, "Cooling: " + str(self.sequences[self.runner].programs[i].targetCoolingTemp) + " Celsius")
             tlinecool.grid(column=0, row=t + 2, sticky=N)
             tlinecool.config(state=DISABLED)
             self.coolinglist.append(tlinecool)
 
             tlinetime.config(state=NORMAL)
             tlinetime.insert(
-                END, "time: " + str(self.sequences[sequence].programs[i].time) + " Sekunden")
+                END, "time: " + str(self.sequences[self.runner].programs[i].time) + " Sekunden")
             tlinetime.grid(column=0, row=t + 3, sticky=N)
             tlinetime.config(state=DISABLED)
             self.timelist.append(tlinetime)
 
-            t += 4
-
-    def showText(self):
-        self.scrollbar = Scrollbar(self)
-        self.textField = Text(self, height=10, width=90)
-        self.scrollbar.grid(column=3, row=0, sticky=N + S)
-        self.textField.grid(column=2, row=0)
-        self.scrollbar.config(command=self.textField.yview)
-        self.textField.config(
-            yscrollcommand=self.scrollbar.set, state=DISABLED)
-
-    def buttonCreate(self):
-        testsequence = [x.name for x in self.sequences]
-        self.variable = StringVar(self)
-        self.variable.set(self.sequences[0].name)
-        self.dropdown = apply(OptionMenu, (self, self.variable) + tuple(testsequence))
-        self.dropdown.config(bg='RED')
-        self.dropdown.bind('<<Menuselect>>',self.showTextline(testsequence.index(self.variable.get())))
-        self.dropdown.grid(column = 5, row = 5, sticky = W+E) 
-        self.button01 = Button(self)
-        self.button01["text"] = self.sequences[0].name
-        self.button01.bind("<Button-1>", self.button01_Click)
-        self.button01.grid(column=0, row=0, sticky=W + E)
-
-    def button2Create(self):
-        self.button02 = Button(self)
-        self.button02["text"] = "Start"
-        self.button02.bind("<Button-1>", self.button02_Click)
-        self.button02.grid(column=1, row=0, sticky=W)
-
-    def saveProgram(self):
-        self.saveProg = Button(self)
-        self.saveProg["text"] = "new Program"
-        self.saveProg.bind("<Button-1>", self.saveProgEvent)
-        self.saveProg.grid(column=4, row=1, sticky=E)
-
-    def button01_Click(self, event):
-
-        if len(self.sequences) > 1:
-
-            if (self.runner < len(self.sequences)):
-                self.button01["text"] = self.sequences[self.runner].name
-                self.showTextline(self.runner)
-                self.runner += 1
-            else:
-                self.showTextline(0)
-                self.button01["text"] = self.sequences[0].name
-                self.runner = 1
-
-    def button02_Click(self, event):
-
-        if not Sublimator.running:
-            Sublimator.start(self.sequences[self.runner - 1])
-            self.plotData = [(0, 0, 0, 0)] * MAX_NUM_PLOTDATA
-            self.button02.config(text="Stop")
-
-            if self.scrollbar.get()[1] == 1.0:
-                self.textField.yview(END)
-
-        else:
-            Sublimator.stop()
-            self.button02.config(text="Start")
+            t += 4   
 
     def saveProgEvent(self, event):
         def buttonClose():
