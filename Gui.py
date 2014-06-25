@@ -21,6 +21,7 @@ class Gui(Frame):
         self.timelist = []
         self.seplist = []
         self.log = []
+	self.progend=True
         self.sequences = Sublimator.sequences
 	self.testsequence = [x.name for x in self.sequences]
         self.variable = StringVar(master)
@@ -123,9 +124,6 @@ class Gui(Frame):
             Sublimator.start(self.sequences[self.runner])
             self.plotData = [(0, 0, 0, 0)] * MAX_NUM_PLOTDATA
             self.startButton.config(text="Stop")
-
-            if self.scrollbar.get()[1] == 1.0:
-                self.textField.yview(END)
             self.saveCheckbox.grid_forget()	
         else:
             Sublimator.stop()
@@ -211,6 +209,7 @@ class Gui(Frame):
 
     def updatePlot(self):
         if Sublimator.running:
+	    self.progend = False	
             data = Sublimator.datalog
 
             # heatTempData = [x[1] for x in data]
@@ -242,7 +241,11 @@ class Gui(Frame):
             self.fig.canvas.draw()
 
         self.after(1000, self.updatePlot)
-        if not Sublimator.running:	
+        if not Sublimator.running:
+	    if self.progend==False and self.checkvariable.get() == 1:
+		    figurefile = "./figs/" + Sublimator.datetime.datetime.now().strftime("%Y-%m-%d_%H-%M") + "_" + self.sequences[self.runner].name + ".png"
+		    self.fig.savefig(figurefile)
+		    self.progend = True		
             self.startButton.config(text="Start")
 	    self.saveCheckbox.grid(column=1, row =1, sticky = E+W+N+S)
 
