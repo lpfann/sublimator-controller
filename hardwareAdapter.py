@@ -5,14 +5,18 @@ import atexit
 import MCP3208
 import time
 
+#Heiz- und Kuehlelemente Pins
+HEAT=18
+COOL=16
+
 class hardwareAdapter:
 
     def __init__(self):
         #Konfiguration der GPIO-Pins
         GPIO.setmode(GPIO.BOARD)
         GPIO.setwarnings(False)
-        GPIO.setup(16, GPIO.OUT)
-        GPIO.setup(18, GPIO.OUT)
+        GPIO.setup(HEAT, GPIO.OUT)
+        GPIO.setup(COOL, GPIO.OUT)
 
         # Initialisierung des A/D Wandlers,
         self.spi = MCP3208.MCP3208(0)
@@ -21,56 +25,59 @@ class hardwareAdapter:
 
     def gpioOFF(self):
         #Ausschalten der Pins
-        GPIO.output(18, False)
-        GPIO.output(16, False)
+        GPIO.output(HEAT, False)
+        GPIO.output(COOL, False)
+        GPIO.cleanup()
 
     def start(self):
         self.heatingON()
         self.coolingON()
 
     def heatingON(self):
-        GPIO.output(18, True)
+        GPIO.output(HEAT, True)
 
     def heatingOFF(self):
-        GPIO.output(18, False)
+        GPIO.output(HEAT, False)
 
     def coolingON(self):
-        GPIO.output(16, True)
+        GPIO.output(COOL, True)
 
     def coolingOFF(self):
-        GPIO.output(16, False)
+        GPIO.output(COOL, False)
 
     def getTemperatureCooling(self):
         value = self.spi.read(0)
+        print value
         temperature=((value * 2.5043) / (4096 * 4.7)- 0.14993)*100
         return round(temperature,2)
 
     def getTemperatureHeating(self):
         value = self.spi.read(2)
+        print value
         heat = (value+.0001)/1000
         temperature=3.606 * (heat * heat) + 128.58 * heat - 242.86
         return round(temperature,2)
 
-
-    def display(self,value):
-        a=1
-
 if __name__ == '__main__':
     hA=hardwareAdapter()
-    hA.coolingON()
-    hA.heatingON()
-    tempH=0
-    tempC=0
+    """hA.coolingON()
+    temp=0
+    cool=0
+    pC=0
+    pH=0
+    counter =0
     while True:
-        tempH=hA.getTemperatureHeating()
-        tempC=hA.getTemperatureCooling()
-        print "Temperatur(H/C): %2f  C  %2f  C" %(tempH,tempC)
-        if tempH>160:
-            hA.heatingOFF()
-        if tempH<120:
-            hA.heatingON()
-        if tempC < 5:
+        temp=hA.getTemperatureHeating()
+        cool=hA.getTemperatureCooling()
+        pC=GPIO.input(COOL)
+        pH=GPIO.input(HEAT)
+        print "Temperatur: %2f  Kuehlung: %2f  PinHeat: %d  PinCool: %d\n" %(temp,cool,pH,pC)
+        counter += 1
+        if counter ==10:
             hA.coolingOFF()
-        if tempC > 10:
-            hA.coolingON()
-        time.sleep(5)
+        time.sleep(3)"""
+    for i in [3,5,7,8,10,11,12,13,15,16,18,19,21,22,23,24,26]:
+        func=GPIO.gpio_function(i)
+        if func==GPIO.IN or func==GPIO.OUT:
+            pin=GPIO.input(i)
+        print "Pin: %d PinFunktion: " + func + " Status: %d" %(i,pin)

@@ -6,56 +6,60 @@ import Sublimator
 import matplotlib
 import numpy as np
 
-MAX_NUM_PLOTDATA = 100
-
 matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 from matplotlib import pyplot as plt
 
+MAX_NUM_PLOTDATA = 100
 
 class Gui(Frame):
-
-    def __init__(self, master=None):
+    def __init__(self, sublimator, master=None):
+        self.sublimator = sublimator
         self.coolinglist = []
         self.heatinglist = []
         self.timelist = []
         self.seplist = []
         self.log = []
-	self.progend=True
+
+        self.progend=True
         self.sequences = Sublimator.sequences
-	self.testsequence = [x.name for x in self.sequences]
+        self.testsequence = [x.name for x in self.sequences]
         self.variable = StringVar(master)
         self.variable.set(self.sequences[0].name)
-	self.runner = 0
+        self.runner = 0
 	
-	Frame.__init__(self, master)
+        Frame.__init__(self, master)
+
+        self.sequences = self.sublimator.sequences
+        Frame.__init__(self, master)
+
         self.grid()
-	self.buttoncontainer = Frame(master=self)
-	self.buttoncontainer.grid(column = 0, row = 0)
+        self.buttoncontainer = Frame(master=self)
+        self.buttoncontainer.grid(column = 0, row = 0)
 	
-	self.infoContainer()
+        self.infoContainer()
         self.showText()
         self.showTextline(event=None)
         self.createDropdown()
         self.createStartButton()
         self.showDiagram()
         self.saveProgram()
-	self.saveDiagram()
+        self.saveDiagram()
         
 	
     def infoContainer(self):
-	'''
-	Erstellt Container fuer die Programminformationen und setzt eine Scrollbar ein.
-	'''
-	self.containercan = Canvas(self, borderwidth=0,width = 30)
+        '''
+	    Erstellt Container fuer die Programminformationen und setzt eine Scrollbar ein.
+	    '''
+        self.containercan = Canvas(self, borderwidth=0,width = 30)
         self.infocontainer = Frame(self.containercan)
-	self.vsb = Scrollbar(self, orient="vertical", command=self.containercan.yview)
+        self.vsb = Scrollbar(self, orient="vertical", command=self.containercan.yview)
         self.containercan.configure(yscrollcommand=self.vsb.set)
-	self.containercan.grid(column = 0, row = 2,sticky=N+S+E)
-	self.vsb.grid(column=1, row = 2, sticky=N+S)
-	interior_id = self.containercan.create_window((0,0),window=self.infocontainer,anchor="nw")
+        self.containercan.grid(column = 0, row = 2,sticky=N+S+E)
+        self.vsb.grid(column=1, row = 2, sticky=N+S)
+        interior_id = self.containercan.create_window((0,0),window=self.infocontainer,anchor="nw")
 	
-	def _configure_infocontainer(event):
+        def _configure_infocontainer(event):
             # update the scrollbars to match the size of the inner frame
             size = (self.infocontainer.winfo_reqwidth(), self.infocontainer.winfo_reqheight())
             self.containercan.config(scrollregion="0 0 %s %s" % size)
@@ -72,14 +76,14 @@ class Gui(Frame):
 	
 	
         
-	self.infocontainer.bind('<Configure>', _configure_infocontainer)
-	self.containercan.bind('<Configure>', _configure_containercan)
+        self.infocontainer.bind('<Configure>', _configure_infocontainer)
+        self.containercan.bind('<Configure>', _configure_containercan)
 	
 	
     def showText(self):
-	'''
-	Erstellt das Textfenster fuer die Log informationen.
-	'''    
+        '''
+	    Erstellt das Textfenster fuer die Log informationen.
+	    '''
         self.scrollbar = Scrollbar(self)
         self.textField = Text(self, height=10, width=90)
         self.scrollbar.grid(column=3, row=0, sticky=N + S)
@@ -98,9 +102,9 @@ class Gui(Frame):
         
 
     def createStartButton(self):    
-	'''
-	Erstellt den Startbutton
-	'''
+        '''
+	    Erstellt den Startbutton
+	    '''
         self.startButton = Button(self.buttoncontainer)
         self.startButton["text"] = "Start"
         self.startButton.bind("<Button-1>", self.startButton_Click)
@@ -112,9 +116,9 @@ class Gui(Frame):
         self.saveProg.grid(column=0, row=1, sticky=E+W+N+S)
     
     def saveDiagram(self):
-	self.checkvariable = IntVar()
-	self.saveCheckbox = Checkbutton(self.buttoncontainer,text="save Diagram",variable=self.checkvariable)
-	self.saveCheckbox.grid(column=1, row =1, sticky = E+W+N+S)
+        self.checkvariable = IntVar()
+        self.saveCheckbox = Checkbutton(self.buttoncontainer,text="save Diagram",variable=self.checkvariable)
+        self.saveCheckbox.grid(column=1, row =1, sticky = E+W+N+S)
 	     
     
     
@@ -128,13 +132,13 @@ class Gui(Frame):
         else:
             Sublimator.stop()
             self.startButton.config(text="Start")
-	    self.saveCheckbox.grid(column=1, row =1, sticky = E+W+N+S)
+            self.saveCheckbox.grid(column=1, row =1, sticky = E+W+N+S)
 	   
     def showTextline(self, event):
-	'''
-	sorgt fuer das fuellen des Informationscontainers bei Auswahl von Programm.
-	'''
-	self.runner = self.testsequence.index(self.variable.get())
+        '''
+	    sorgt fuer das fuellen des Informationscontainers bei Auswahl von Programm.
+	    '''
+        self.runner = self.testsequence.index(self.variable.get())
         phases = Entry(self.infocontainer)
         phases.insert(END, "Phases of Program")
         phases.grid(column=0, row=0, sticky=N)
@@ -142,16 +146,16 @@ class Gui(Frame):
         t = 0
         for heat in self.heatinglist:
             heat.destroy()
-        self.heatinglist[:] = []
+            self.heatinglist[:] = []
         for time in self.timelist:
             time.destroy()
-        self.timelist[:] = []
+            self.timelist[:] = []
         for cool in self.coolinglist:
             cool.destroy()
-        self.coolinglist[:] = []
+            self.coolinglist[:] = []
         for sep in self.seplist:
             sep.destroy()
-        self.seplist[:] = []
+            self.seplist[:] = []
 
         for i in range(len(self.sequences[self.runner].programs)):
             tlineheat = Entry(self.infocontainer)
@@ -185,8 +189,72 @@ class Gui(Frame):
             tlinetime.config(state=DISABLED)
             self.timelist.append(tlinetime)
 
-            t += 4   
 
+            t += 4
+
+
+
+
+
+    def button02_Click(self, event):
+
+        if not self.sublimator.running:
+            self.sublimator.start(self.sequences[self.runner - 1])
+            self.plotData = [(0, 0, 0, 0)] * MAX_NUM_PLOTDATA
+            self.button02.config(text="Stop")
+
+            if self.scrollbar.get()[1] == 1.0:
+                self.textField.yview(END)
+
+        else:
+            self.sublimator.stop()
+            self.button02.config(text="Start")
+
+    def saveProgEvent(self, event):
+        def buttonClose():
+            saveWindow.quit()
+
+        saveWindow = Toplevel()
+        saveWindow.title("Save Program")
+        text = """{
+ "name": (programname),
+ "programs": [
+   {
+     "targetHeatingTemp": (temp),
+     "targetCoolingTemp": (temp),
+     "time": (time)
+   },
+   {
+     "targetHeatingTemp": (temp),
+     "targetCoolingTemp": (temp),
+     "time": (time)
+   },
+   {
+     "targetHeatingTemp": (temp),
+     "targetCoolingTemp": (temp),
+     "time": (time)
+   },
+   {
+      "targetHeatingTemp": (temp),
+      "targetCoolingTemp": (temp),
+      "time": (time)
+    }
+  ] 
+}"""
+
+        def buttonSave():
+            saveData = Text(master=saveWindow)
+            dataScrollbar = Scrollbar(master=saveWindow)
+            dataScrollbar.grid(column=0, row=0, sticky=N + S)
+            saveData.insert(END, text)
+            saveData.grid(column=1, row=0)
+            dataScrollbar.config(command=saveData.yview)
+            saveData.config(yscrollcommand=dataScrollbar.set)
+
+            saveButton = Button(master=saveWindow)
+            saveButton["text"] = "save"
+            saveButton.bind("<Button-1>", buttonSave)
+            saveButton.grid(column=0, row=1)
 
     def showDiagram(self):
         self.plotData = [(0, 0, 0, 0)] * MAX_NUM_PLOTDATA
@@ -209,8 +277,9 @@ class Gui(Frame):
 
     def updatePlot(self):
         if Sublimator.running:
-	    self.progend = False	
+            self.progend = False
             data = Sublimator.datalog
+
 
             # heatTempData = [x[1] for x in data]
             # ymin = float(min(heatTempData)) - 10
@@ -241,13 +310,16 @@ class Gui(Frame):
             self.fig.canvas.draw()
 
         self.after(1000, self.updatePlot)
+
         if not Sublimator.running:
-	    if self.progend==False and self.checkvariable.get() == 1:
-		    figurefile = "./figs/" + Sublimator.datetime.datetime.now().strftime("%Y-%m-%d_%H-%M") + "_" + self.sequences[self.runner].name + ".png"
-		    self.fig.savefig(figurefile)
-		    self.progend = True		
-            self.startButton.config(text="Start")
-	    self.saveCheckbox.grid(column=1, row =1, sticky = E+W+N+S)
+            if self.progend==False and self.checkvariable.get() == 1:
+                figurefile = "./figs/" + Sublimator.datetime.datetime.now().strftime("%Y-%m-%d_%H-%M") + "_" + self.sequences[self.runner].name + ".png"
+                self.fig.savefig(figurefile)
+                self.progend = True
+                self.startButton.config(text="Start")
+                self.saveCheckbox.grid(column=1, row =1, sticky = E+W+N+S)
+            self.button02.config(text="Start")
+
 
     def updateConsole(self):
         '''
@@ -257,7 +329,7 @@ class Gui(Frame):
 
         self.textField.configure(state=NORMAL)
         self.textField.delete(1.0, END)
-        self.log = Sublimator.log_capture_string.getvalue()
+        self.log = self.sublimator.log_capture_string.getvalue()
         self.textField.insert(END, self.log)
         self.textField.configure(state=DISABLED)
         self.after(1000, self.updateConsole)
@@ -273,10 +345,10 @@ def _quit():
 
 
 if __name__ == '__main__':
-    Sublimator.initMain()
+    sublimator = Sublimator.Sublimator()
     root = Tk()
     root.protocol("WM_DELETE_WINDOW", _quit)
-    myapp = Gui(root)
+    myapp = Gui(sublimator, master=root)
 
     myapp.master.title("Sublimator")
     myapp.master.minsize(860, 560)
