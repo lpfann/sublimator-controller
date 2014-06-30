@@ -41,7 +41,6 @@ class Gui(Frame):
         self.createDropdown()
         self.createStartButton()
         self.showDiagram()
-        self.saveProgram()
         self.saveDiagram()
         
 	
@@ -95,7 +94,7 @@ class Gui(Frame):
 	Erstellt das Dropdownmenue fuer die Auswahl der Programme.
 	'''        
         self.dropdown = apply(OptionMenu, (self.buttoncontainer, self.variable) + tuple(self.testsequence))
-        self.dropdown.bind("<<MenuSelect>>", self.showTextline)
+        self.variable.trace("w",self.showTextline)
         self.dropdown.grid(column = 0, row = 0, sticky = E+W+N+S) 
         
 
@@ -108,15 +107,11 @@ class Gui(Frame):
         self.startButton.bind("<Button-1>", self.startButton_Click)
         self.startButton.grid(column=1, row=0, sticky=E+W+N+S)
 
-    def saveProgram(self):
-        self.saveProg = Button(self.buttoncontainer)
-        self.saveProg["text"] = "new Program"
-        self.saveProg.grid(column=0, row=1, sticky=E+W+N+S)
     
     def saveDiagram(self):
         self.checkvariable = IntVar()
         self.saveCheckbox = Checkbutton(self.buttoncontainer,text="save Diagram",variable=self.checkvariable)
-        self.saveCheckbox.grid(column=1, row =1, sticky = E+W+N+S)
+        self.saveCheckbox.grid(column=0, row =1, sticky = E+W+N+S, columnspan = 2)
 	     
     
     
@@ -132,7 +127,7 @@ class Gui(Frame):
             self.startButton.config(text="Start")
             self.saveCheckbox.configure(state="normal")
 	   
-    def showTextline(self, event):
+    def showTextline(self, event,*args):
         '''
 	    sorgt fuer das fuellen des Informationscontainers bei Auswahl von Programm.
 	    '''
@@ -143,17 +138,18 @@ class Gui(Frame):
         phases.config(state=DISABLED)
         t = 0
         for heat in self.heatinglist:
-            heat.destroy()
+            heat.destroy() 
             self.heatinglist[:] = []
         for time in self.timelist:
-            time.destroy()
+            time.destroy() 
             self.timelist[:] = []
         for cool in self.coolinglist:
-            cool.destroy()
+            cool.destroy() 
             self.coolinglist[:] = []
         for sep in self.seplist:
             sep.destroy()
             self.seplist[:] = []
+	  
 
         for i in range(len(self.sequences[self.runner].programs)):
             tlineheat = Entry(self.infocontainer)
@@ -189,7 +185,7 @@ class Gui(Frame):
 
 
             t += 4
-
+	
 
 
 
@@ -208,51 +204,6 @@ class Gui(Frame):
             self.sublimator.stop()
             self.button02.config(text="Start")
 
-    def saveProgEvent(self, event):
-        def buttonClose():
-            saveWindow.quit()
-
-        saveWindow = Toplevel()
-        saveWindow.title("Save Program")
-        text = """{
- "name": (programname),
- "programs": [
-   {
-     "targetHeatingTemp": (temp),
-     "targetCoolingTemp": (temp),
-     "time": (time)
-   },
-   {
-     "targetHeatingTemp": (temp),
-     "targetCoolingTemp": (temp),
-     "time": (time)
-   },
-   {
-     "targetHeatingTemp": (temp),
-     "targetCoolingTemp": (temp),
-     "time": (time)
-   },
-   {
-      "targetHeatingTemp": (temp),
-      "targetCoolingTemp": (temp),
-      "time": (time)
-    }
-  ] 
-}"""
-
-        def buttonSave():
-            saveData = Text(master=saveWindow)
-            dataScrollbar = Scrollbar(master=saveWindow)
-            dataScrollbar.grid(column=0, row=0, sticky=N + S)
-            saveData.insert(END, text)
-            saveData.grid(column=1, row=0)
-            dataScrollbar.config(command=saveData.yview)
-            saveData.config(yscrollcommand=dataScrollbar.set)
-
-            saveButton = Button(master=saveWindow)
-            saveButton["text"] = "save"
-            saveButton.bind("<Button-1>", buttonSave)
-            saveButton.grid(column=0, row=1)
 
     def showDiagram(self):
         self.plotData = [(0, 0, 0, 0)] * MAX_NUM_PLOTDATA
@@ -280,12 +231,11 @@ class Gui(Frame):
 	    if self.sublimator.progindex == 0:
 		
 	    	self.seplist[self.sublimator.progindex].configure(disabledbackground = "cyan")
-		#self.seplist[self.sublimator.progindex].configure(state = "disabled")
+		
 	    else:
 		self.seplist[self.sublimator.progindex].configure(disabledbackground = "cyan")    	
 	    	self.seplist[self.sublimator.progindex-1].configure(disabledbackground = "white")
-		#self.seplist[self.sublimator.progindex].configure(state = "disabled")
-		#self.seplist[self.sublimator.progindex-1].configure(state = "disabled")
+		
 		
 
             # heatTempData = [x[1] for x in data]
@@ -323,7 +273,9 @@ class Gui(Frame):
                 figurefile = "./figs/" + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M") + "_" + self.sequences[self.runner].name + ".png"
                 self.fig.savefig(figurefile)
                 self.progend = True
-	    self.seplist[self.sublimator.progindex].configure(disabledbackground = "white")	
+	    for sep in self.seplist:    		
+	    	sep.configure(disabledbackground = "white")	
+	    
             self.startButton.config(text="Start")
             self.saveCheckbox.configure(state="normal")
             
