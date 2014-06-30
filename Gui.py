@@ -5,6 +5,7 @@ from matplotlib.figure import Figure
 import Sublimator
 import matplotlib
 import numpy as np
+import datetime
 
 matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
@@ -22,15 +23,12 @@ class Gui(Frame):
         self.log = []
 
         self.progend=True
-        self.sequences = Sublimator.sequences
+        self.sequences = self.sublimator.sequences
         self.testsequence = [x.name for x in self.sequences]
         self.variable = StringVar(master)
         self.variable.set(self.sequences[0].name)
         self.runner = 0
 	
-        Frame.__init__(self, master)
-
-        self.sequences = self.sublimator.sequences
         Frame.__init__(self, master)
 
         self.grid()
@@ -124,15 +122,15 @@ class Gui(Frame):
     
     def startButton_Click(self, event):
 
-        if not Sublimator.running:
-            Sublimator.start(self.sequences[self.runner])
+        if not self.sublimator.running:
+            self.sublimator.start(self.sequences[self.runner])
             self.plotData = [(0, 0, 0, 0)] * MAX_NUM_PLOTDATA
             self.startButton.config(text="Stop")
-            self.saveCheckbox.grid_forget()	
+            self.saveCheckbox.configure(state="disabled")	
         else:
-            Sublimator.stop()
+            self.sublimator.stop()
             self.startButton.config(text="Start")
-            self.saveCheckbox.grid(column=1, row =1, sticky = E+W+N+S)
+            self.saveCheckbox.configure(state="normal")
 	   
     def showTextline(self, event):
         '''
@@ -165,7 +163,7 @@ class Gui(Frame):
 
             tlinefree.insert(END, "Phase " + str(i + 1))
             tlinefree.grid(column=0, row=t, sticky=N)
-            tlinefree.config(state=(DISABLED))
+            tlinefree.config(state=(DISABLED), disabledbackground = "white")
             self.seplist.append(tlinefree)
 
             tlineheat.config(state=NORMAL)
@@ -276,10 +274,19 @@ class Gui(Frame):
         self.canvas._tkcanvas.grid(column=2, row=1, rowspan=100, sticky=W + S)
 
     def updatePlot(self):
-        if Sublimator.running:
+        if self.sublimator.running:
             self.progend = False
-            data = Sublimator.datalog
-
+            data = self.sublimator.datalog
+	    if self.sublimator.progindex == 0:
+		
+	    	self.seplist[self.sublimator.progindex].configure(disabledbackground = "cyan")
+		#self.seplist[self.sublimator.progindex].configure(state = "disabled")
+	    else:
+		self.seplist[self.sublimator.progindex].configure(disabledbackground = "cyan")    	
+	    	self.seplist[self.sublimator.progindex-1].configure(disabledbackground = "white")
+		#self.seplist[self.sublimator.progindex].configure(state = "disabled")
+		#self.seplist[self.sublimator.progindex-1].configure(state = "disabled")
+		
 
             # heatTempData = [x[1] for x in data]
             # ymin = float(min(heatTempData)) - 10
@@ -311,14 +318,15 @@ class Gui(Frame):
 
         self.after(1000, self.updatePlot)
 
-        if not Sublimator.running:
+        if not self.sublimator.running:
             if self.progend==False and self.checkvariable.get() == 1:
-                figurefile = "./figs/" + Sublimator.datetime.datetime.now().strftime("%Y-%m-%d_%H-%M") + "_" + self.sequences[self.runner].name + ".png"
+                figurefile = "./figs/" + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M") + "_" + self.sequences[self.runner].name + ".png"
                 self.fig.savefig(figurefile)
                 self.progend = True
-                self.startButton.config(text="Start")
-                self.saveCheckbox.grid(column=1, row =1, sticky = E+W+N+S)
-            self.button02.config(text="Start")
+	    self.seplist[self.sublimator.progindex].configure(disabledbackground = "white")	
+            self.startButton.config(text="Start")
+            self.saveCheckbox.configure(state="normal")
+            
 
 
     def updateConsole(self):
