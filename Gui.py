@@ -139,16 +139,16 @@ class Gui(Frame):
         t = 0
         for heat in self.heatinglist:
             heat.destroy() 
-            self.heatinglist[:] = []
+        self.heatinglist[:] = []
         for time in self.timelist:
             time.destroy() 
-            self.timelist[:] = []
+        self.timelist[:] = []
         for cool in self.coolinglist:
             cool.destroy() 
-            self.coolinglist[:] = []
+        self.coolinglist[:] = []
         for sep in self.seplist:
             sep.destroy()
-            self.seplist[:] = []
+        self.seplist[:] = []
 	  
 
         for i in range(len(self.sequences[self.runner].programs)):
