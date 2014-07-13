@@ -211,8 +211,11 @@ class Gui(Frame):
             [x[2] for x in self.plotData], 'b--')  # Target Cooling
         self.line4, = self.ax2.plot(
             [x[3] for x in self.plotData], 'b-')  # Cooling
+        self.ax.set_xlabel("Time")
         self.ax.set_ylim([0, 180])
+        self.ax.set_ylabel(u"Heating in °C")
         self.ax2.set_ylim([0, 30])
+        self.ax2.set_ylabel(u"Cooling in °C")
 
         self.canvas = FigureCanvasTkAgg(self.fig, self)
         self.canvas.show()
@@ -222,6 +225,7 @@ class Gui(Frame):
     def updatePlot(self):
         if self.sublimator.running:
             self.progend = False
+            self.ax.set_title("")
             data = self.sublimator.datalog[:]
             if self.sublimator.progindex == 0:
 
@@ -277,7 +281,9 @@ class Gui(Frame):
                 self.line3.set_ydata([x[2] for x in self.plotData])
                 self.line4.set_xdata(np.arange(len(self.plotData)))
                 self.line4.set_ydata([x[3] for x in self.plotData])
-                self.fig.canvas.draw()
+                self.ax.set_title(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M") + "_" + self.sequences[
+                    self.runner].name)
+                # self.fig.canvas.draw()
                 self.fig.savefig(figurefile)
                 self.sublimator.logger.info(
                     "Verlaufsgrafik auf Basis der Messdaten wurde erstellt: {}".format(figurefile))
