@@ -220,7 +220,7 @@ class Gui(Frame):
     def updatePlot(self):
         if self.sublimator.running:
             self.progend = False
-            data = self.sublimator.datalog
+            data = self.sublimator.datalog[:]
             if self.sublimator.progindex == 0:
 
                 self.seplist[self.sublimator.progindex].configure(disabledbackground="cyan")
