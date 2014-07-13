@@ -209,7 +209,7 @@ class Gui(Frame):
             [x[2] for x in self.plotData], 'b--')  # Target Cooling
         self.line4, = self.ax2.plot(
             [x[3] for x in self.plotData], 'b-')  # Cooling
-        self.ax.set_ylim([0, 160])
+        self.ax.set_ylim([0, 180])
         self.ax2.set_ylim([0, 30])
 
         self.canvas = FigureCanvasTkAgg(self.fig, self)
@@ -263,10 +263,25 @@ class Gui(Frame):
 
         if not self.sublimator.running:
             if self.progend == False and self.checkvariable.get() == 1:
+                # Kompletter Plot wird am Ende gezeichnet wenn Checkox aktiv
                 figurefile = "./figs/" + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M") + "_" + self.sequences[
                     self.runner].name + ".png"
+                self.plotData = self.sublimator.datalog
+                self.line1.set_xdata(np.arange(len(self.plotData)))
+                self.line1.set_ydata([x[0] for x in self.plotData])
+                self.line2.set_xdata(np.arange(len(self.plotData)))
+                self.line2.set_ydata([x[1] for x in self.plotData])
+                self.line3.set_xdata(np.arange(len(self.plotData)))
+                self.line3.set_ydata([x[2] for x in self.plotData])
+                self.line4.set_xdata(np.arange(len(self.plotData)))
+                self.line4.set_ydata([x[3] for x in self.plotData])
+                self.fig.canvas.draw()
                 self.fig.savefig(figurefile)
+                self.sublimator.logger.info(
+                    "Verlaufsgrafik auf Basis der Messdaten wurde erstellt: {}".format(figurefile))
+
                 self.progend = True
+
             for sep in self.seplist:
                 sep.configure(disabledbackground="white")
 
