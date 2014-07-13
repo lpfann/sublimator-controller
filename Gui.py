@@ -29,6 +29,7 @@ class Gui(Frame):
         self.variable = StringVar(master)
         self.variable.set(self.sequences[0].name)
         self.runner = 0
+        self.oldlen = 0
 
         Frame.__init__(self, master)
 
@@ -204,7 +205,8 @@ class Gui(Frame):
         self.ax2 = self.ax.twinx()
         self.line1, = self.ax.plot(
             [x[0] for x in self.plotData], 'r--')  # Target Heat
-        self.line2, = self.ax.plot([x[1] for x in self.plotData], 'r-')  # Heat
+        self.line2, = self.ax.plot(
+            [x[1] for x in self.plotData], 'r-')  # Heat
         self.line3, = self.ax2.plot(
             [x[2] for x in self.plotData], 'b--')  # Target Cooling
         self.line4, = self.ax2.plot(
@@ -295,11 +297,19 @@ class Gui(Frame):
         Verhindert Probleme mit Multithrading und Tkinter...
         '''
 
-        self.textField.configure(state=NORMAL)
-        self.textField.delete(1.0, END)
-        self.log = self.sublimator.log_capture_string.getvalue()
-        self.textField.insert(END, self.log)
-        self.textField.configure(state=DISABLED)
+        self.newlen = len(self.sublimator.log_capture_string.getvalue())
+        # Update der Konsole wenn neue Daten vorliegen
+        if 0 < self.newlen != self.oldlen:
+            self.oldlen = self.newlen
+            # Inhalt komplett loeschen
+            self.textField.configure(state=NORMAL)
+            self.textField.delete(1.0, END)
+            self.log = self.sublimator.log_capture_string.getvalue()
+            # Neuen Inhalt einfuegen
+            self.textField.insert(END, self.log)
+            self.textField.configure(state=DISABLED)
+            self.textField.yview(END)  # Setzt Scrollbar ans Ende
+        # Update nach einer Sekunde, ruft Methode neu auf
         self.after(1000, self.updateConsole)
 
 
