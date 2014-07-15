@@ -42,18 +42,18 @@ def importSequences(logger):
                                    programPartObject["time"])
                 if 3 < part.targetCoolingTemp > 20:
                     logger.info(
-                        "Kühltemperatur für Sequenz {} enthält Extremwerte, welche eventuell nicht durch Kühlung erreicht werden kann.".format(
+                        u"Kühltemperatur für Sequenz {} enthält Extremwerte, welche eventuell nicht durch Kühlung erreicht werden kann.".format(
                             filename))
                 if 30 > part.targetHeatingTemp > 200:
                     logger.info(
-                        "Heiztemperatur für Sequenz {} enthält Extremwerte, welche eventuell nicht durch Heizung erreicht werden kann.".format(
+                        u"Heiztemperatur für Sequenz {} enthält Extremwerte, welche eventuell nicht durch Heizung erreicht werden kann.".format(
                             filename))
 
                 programs.append(part)
             newSequence = Sequence(data["name"], programs)
             sequences.append(newSequence)
 
-    logger.debug("%i Sequenzen konnten importiert werden" % len(sequences))
+    logger.debug(u"%i Sequenzen konnten importiert werden" % len(sequences))
     return sequences
 
 
@@ -68,4 +68,4 @@ def saveSequenceToFile(sequence, logger):
         with open("./sequences/" + name + ".seq", 'w', encoding="UTF-8") as f:
             json.dump(sequence, f, default=jdefault, indent=2)
     else:
-        logger.error("Datei %s exisitert schon. Konnte nicht gespeichert werden" % (name + ".seq"))
+        logger.error(u"Datei %s exisitert schon. Konnte nicht gespeichert werden" % (name + ".seq"))
