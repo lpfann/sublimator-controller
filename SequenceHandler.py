@@ -3,8 +3,7 @@ import json
 import logging
 
 
-
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("Sublimator")
 
 class ProgramPart:
 
@@ -36,13 +35,19 @@ def importSequences():
     sequences = []
     for filename in glob.iglob("./sequences/*.seq"):
         with open(filename) as sequencefile:
-            data = json.load(sequencefile)
+            try:
+                data = json.load(sequencefile)
+            except:
+                logger.error("Sequenzdatei {} konnte nicht eingelesen werden. Falsches Format!".format(filename))
+                continue
+
             programs = []
             for programPartObject in data["programs"]:
                 part = ProgramPart(programPartObject["targetHeatingTemp"],programPartObject["targetCoolingTemp"], programPartObject["time"])
                 programs.append(part)
             newSequence = Sequence(data["name"], programs)
             sequences.append(newSequence)
+
     logger.debug("%i Sequenzen konnten importiert werden" % len(sequences))
     return sequences
 
