@@ -43,7 +43,7 @@ class Sublimator():
         consolehandler = logging.StreamHandler()
         consolehandler.setLevel(logging.DEBUG)
         formatter = logging.Formatter(u'%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        guiconsoleformatter = logging.Formatter(u'%(asctime)s - %(message)s')
+        guiconsoleformatter = logging.Formatter(fmt=u'%(asctime)s - %(message)s', datefmt="%H:%M:%S")
         filehandler.setFormatter(formatter)
         consolehandler.setFormatter(formatter)
         self.log_capture_string = StringIO.StringIO()
