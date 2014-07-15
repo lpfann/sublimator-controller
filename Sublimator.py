@@ -28,7 +28,7 @@ class Sublimator():
         # self.hardware = hardwareAdapter.hardwareAdapter()
         self.progindex = 0
         # Import der zur Verfuegung stehenden Sequenzen
-        self.sequences = SequenceHandler.importSequences()
+        self.sequences = SequenceHandler.importSequences(self.logger)
 
     def initLogger(self):
         """
