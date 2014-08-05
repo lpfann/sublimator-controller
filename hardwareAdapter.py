@@ -6,12 +6,12 @@ import MCP3208
 import time
 import random
 
-#Heiz- und Kuehlelemente Pins
-HEAT=18
-COOL=16
+# Heiz- und Kuehlelemente Pins
+HEAT = 18
+COOL = 16
+
 
 class hardwareAdapter:
-
     def __init__(self):
         #Konfiguration der GPIO-Pins
         GPIO.setmode(GPIO.BOARD)
@@ -48,16 +48,15 @@ class hardwareAdapter:
 
     def getTemperatureCooling(self):
         value = self.spi.read(0)
-        print value
-        temperature=((value * 2.5043) / (4096 * 4.7)- 0.14993)*100
-        return round(temperature,2)
+        temperature = ((value * 2.5043) / (4096 * 4.7) - 0.14993) * 100
+        return round(temperature, 2)
 
     def getTemperatureHeating(self):
         value = self.spi.read(2)
-        print value
-        heat = (value+.0001)/1000
-        temperature=3.606 * (heat * heat) + 128.58 * heat - 242.86
-        return round(temperature,2)
+        heat = (value + .0001) / 1000
+        temperature = 3.606 * (heat * heat) + 128.58 * heat - 242.86
+        return round(temperature, 2)
+
 
     """
     Prototyp-Funktion liefert die Intensität der Schranke im Bereich [0,1]
@@ -66,7 +65,7 @@ class hardwareAdapter:
         return random.random()
 
 if __name__ == '__main__':
-    hA=hardwareAdapter()
+    hA = hardwareAdapter()
     """hA.coolingON()
     temp=0
     cool=0
@@ -83,8 +82,8 @@ if __name__ == '__main__':
         if counter ==10:
             hA.coolingOFF()
         time.sleep(3)"""
-    for i in [3,5,7,8,10,11,12,13,15,16,18,19,21,22,23,24,26]:
-        func=GPIO.gpio_function(i)
-        if func==GPIO.IN or func==GPIO.OUT:
-            pin=GPIO.input(i)
-        print "Pin: %d PinFunktion: " + func + " Status: %d" %(i,pin)
+    for i in [3, 5, 7, 8, 10, 11, 12, 13, 15, 16, 18, 19, 21, 22, 23, 24, 26]:
+        func = GPIO.gpio_function(i)
+        if func == GPIO.IN or func == GPIO.OUT:
+            pin = GPIO.input(i)
+        print "Pin: %d PinFunktion: " + func + " Status: %d" % (i, pin)

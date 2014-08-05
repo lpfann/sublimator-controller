@@ -11,190 +11,166 @@ from threading import Timer
 from threading import Thread
 import logging
 import SequenceHandler
-#import hardwareAdapter
+# import hardwareAdapter
 import datetime
 import StringIO
 #import matplotlib.pyplot as plt
 
 
-running = False
-hardware = None
-logger = None
-progindex = 0
-timer = None
-datalog = None
-sequences = None
-datalog = None
-log_capture_string = None
 
-def initLogger():
-    """
-        Initalisiert den logger der überall, auch in den Untermodulen,
-        benutzt werden kann.
-        Formatierung und verschiedene Handler für Consolen und Datei Logging werden hier konfiguriert
-    """
-    global logger, log_capture_string
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.DEBUG)
-    filehandler = logging.FileHandler('main.log')
-    filehandler.setLevel(logging.INFO)
-    consolehandler = logging.StreamHandler()
-    consolehandler.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    filehandler.setFormatter(formatter)
-    consolehandler.setFormatter(formatter)
-    log_capture_string = StringIO.StringIO()
-    ch = logging.StreamHandler(log_capture_string)
-    ch.setLevel(logging.DEBUG)
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
-    logger.addHandler(filehandler)
-    logger.addHandler(consolehandler)
+class Sublimator():
+    def __init__(self):
+        self.currSeq = None
+        self.running = False
+        self.datalog = []
+        self.initLogger()
+        # Hardware Adapter initalisieren
+        # self.hardware = hardwareAdapter.hardwareAdapter()
+        self.progindex = 0
+        # Import der zur Verfuegung stehenden Sequenzen
+        self.sequences = SequenceHandler.importSequences(self.logger)
 
-
-def counter():
-    """
-         Zeitzähler für die Programmzeiten
-
-    """
-    global progindex
-    # Methode die im Timer Thread aufgerufen wird
-    progindex += 1
+    def initLogger(self):
+        """
+            Initalisiert den logger der überall, auch in den Untermodulen,
+            benutzt werden kann.
+            Formatierung und verschiedene Handler für Consolen und Datei Logging werden hier konfiguriert
+        """
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.DEBUG)
+        filehandler = logging.FileHandler('main.log')
+        filehandler.setLevel(logging.INFO)
+        consolehandler = logging.StreamHandler()
+        consolehandler.setLevel(logging.DEBUG)
+        formatter = logging.Formatter(u'%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        guiconsoleformatter = logging.Formatter(fmt=u'%(asctime)s - %(message)s', datefmt="%H:%M:%S")
+        filehandler.setFormatter(formatter)
+        consolehandler.setFormatter(formatter)
+        self.log_capture_string = StringIO.StringIO()
+        ch = logging.StreamHandler(self.log_capture_string)
+        ch.setLevel(logging.INFO)
+        ch.setFormatter(guiconsoleformatter)
+        self.logger.addHandler(ch)
+        self.logger.addHandler(filehandler)
+        self.logger.addHandler(consolehandler)
 
 
-def tempregulator(targetheatingtemp, targetcoolingtemp):
-    """
-         Funktion, welche die Temperatur reguliert um den Zielwerten zu entsprechen
-    :param targetheatingtemp: Zielwert für Heizung
-    :param targetcoolingtemp: Zielwert für Kühlung
-    """
-    temp_delay  = 2 # Temperatur-Delay um weiteres aufheizen über TargetHeatingTemp zu verhindern
-    # if hardware.getTemperatureHeating() <= targetheatingtemp - temp_delay:
-    #     hardware.heatingON()
-    # else:
-    #     hardware.heatingOFF()
-    # if hardware.getTemperatureCooling() >= targetcoolingtemp:
-    #     hardware.coolingON()
-    # else:
-    #     hardware.coolingOFF()
+    def counter(self):
+        """
+             Zeitzähler für die Programmzeiten
+
+        """
+
+        # Methode die im Timer Thread aufgerufen wird
+        self.progindex += 1
 
 
-def controller(currSeq):
-    """
-        Steuert den Ablauf der Sequenz.
-        Ruft mehrmals Timer auf, die entsprechend den Programmpunkten  lange laufen
-    :param currSeq:
-    """
-    global running, progindex,datalog
-    # Initalisierungen für den ersten programmpunkt
-    progindex = 0
-    prog = currSeq.programs[progindex]
-    targetheatingtemp = prog.targetHeatingTemp
-    targetcoolingtemp = prog.targetCoolingTemp
-    timer = Timer(prog.time, counter)
-    timer.start()
-    oldindex = progindex
-    running = True
-    datalog = []
-    #plt = initlog()
-    # Schleife die solange läuft, bis die Sequenz komplett durchlaufen ist oder von außen abgebrochen wird.
-    while running:
-        # Ablauf der Sequenz steuern
-        if progindex < len(currSeq.programs) and oldindex != progindex:
-            oldindex = progindex
-            prog = currSeq.programs[progindex]
-            timer = Timer(prog.time, counter)
-            timer.start()
-            targetheatingtemp = prog.targetHeatingTemp
-            targetcoolingtemp = prog.targetCoolingTemp
-        #Abbruchbedingung - Ende der Sequenz erreicht
-        if progindex == len(currSeq.programs):
-            running = False
-
-        # Temperatur regulieren
-        tempregulator(targetheatingtemp, targetcoolingtemp)
-        # Ausgabe der momentanen Daten
-        # logger.debug("Programm {1}: TargetHeatingTemp:{0} CurrentHeatingTemp:{2} TargetCoolingTemp:{3} CurrentCoolingTemp:{4} ".
-        #              format(targetheatingtemp, currSeq.name,hardware.getTemperatureHeating(),targetcoolingtemp,hardware.getTemperatureCooling()))
-        datalog.append((targetheatingtemp,random.randint(targetheatingtemp/2, targetheatingtemp),targetcoolingtemp,
-                        random.randint(targetcoolingtemp/2, targetcoolingtemp)))
-        # Pause
-        time.sleep(0.3)
-
-    writedatatofile(datalog, currSeq) #Datenlog schreiben
-    logger.info(u"Sequenz beendet")
+    def tempregulator(self, targetheatingtemp, targetcoolingtemp):
+        """
+        Funktion, welche die Temperatur reguliert um den Zielwerten zu entsprechen
+        :param targetheatingtemp: Zielwert für Heizung
+        :param targetcoolingtemp: Zielwert für Kühlung
+        """
+        temp_delay = 2  # Temperatur-Delay um weiteres aufheizen über TargetHeatingTemp zu verhindern
+        # if self.hardware.getTemperatureHeating() <= targetheatingtemp - temp_delay:
+        # self.hardware.heatingON()
+        # else:
+        #     self.hardware.heatingOFF()
+        # if self.hardware.getTemperatureCooling() >= targetcoolingtemp:
+        #     self.hardware.coolingON()
+        # else:
+        #     self.hardware.coolingOFF()
 
 
-def writedatatofile(datalog, currSeq):
-    """
-        Schreibt Datenlog in eine .csv Datei um damit weiter arbeiten zu können.
-    :param datalog: Der zu schreibende Datenlog
-    :param currSeq: Gewählte Sequenz, mit der das Programm abgelaufen ist
-    """
-    if not os.path.exists("./logs"):
-        os.makedirs("./logs")
-    filename = "./logs/" + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M") + "_" + currSeq.name + ".csv"
-    datafile = open(filename, 'w')
-    datafile.write("#TargetHeating, CurrentHeating, TargetCooling, CurrentCooling\n")
-    for x in datalog:
-        datafile.write(("{}, {}, {}, {}\n".format(x[0], x[1], x[2], x[3])))
-    datafile.close()
-    logger.info("Logdatei mit Messdaten wurde erstellt: {}".format(filename))
+    def controller(self, currSeq):
+        """
+            Steuert den Ablauf der Sequenz.
+            Ruft mehrmals Timer auf, die entsprechend den Programmpunkten  lange laufen
+        :param currSeq:
+        """
+        # Initalisierungen für den ersten programmpunkt
+        self.progindex = 0
+        self.currSeq = currSeq
+        prog = self.currSeq.programs[self.progindex]
+        targetheatingtemp = prog.targetHeatingTemp
+        targetcoolingtemp = prog.targetCoolingTemp
+        timer = Timer(prog.time, self.counter)
+        timer.start()
+        oldindex = self.progindex
+        self.running = True
+        self.datalog = []
+        # plt = initlog()
+        # Schleife die solange läuft, bis die Sequenz komplett durchlaufen ist oder von außen abgebrochen wird.
+        while self.running:
+            # Ablauf der Sequenz steuern
+            if self.progindex < len(self.currSeq.programs) and oldindex != self.progindex:
+                oldindex = self.progindex
+                prog = self.currSeq.programs[self.progindex]
+                timer = Timer(prog.time, self.counter)
+                timer.start()
+                targetheatingtemp = prog.targetHeatingTemp
+                targetcoolingtemp = prog.targetCoolingTemp
+            #Abbruchbedingung - Ende der Sequenz erreicht
+            if self.progindex == len(currSeq.programs):
+                self.running = False
+
+            # Temperatur regulieren
+            self.tempregulator(targetheatingtemp, targetcoolingtemp)
+            # Ausgabe der momentanen Daten
+            # datalog.append((targetheatingtemp, self.hardware.getTemperatureHeating(),targetcoolingtemp, self.hardware.getTemperatureCooling()))
+            self.datalog.append((targetheatingtemp, 0, targetcoolingtemp, 0))
+            # Pause
+            time.sleep(0.3)
+
+        # Heizung und Kühlung ausschalten nach Programm
+        # self.hardware.heatingOFF()
+        # self.hardware.coolingOFF()
+        self.writedatatofile(self.datalog)  # Datenlog schreiben
+        self.logger.info(u"Sequenz beendet")
 
 
-# def initlog():
-#     """
-#          Plottet die Daten als Temperaturkurve
-#     :param data: Daten, die vom Controller gesammelt wurden
-#     """
-#     fig = plt.figure()
-#     plt.axis([0, 1000, 0, 180]) #xmin,xmax,ymin,ymax
-#     plt.title("Programmablauf")
-#     plt.xlabel("Zeit")
-#     plt.ylabel(u"Temperatur °C")
-#     plt.ion()
-#     plt.show()
-#     return plt
+    def writedatatofile(self, datalog):
+        """
+            Schreibt Datenlog in eine .csv Datei um damit weiter arbeiten zu können.
+        :param datalog: Der zu schreibende Datenlog
+        :param currSeq: Gewählte Sequenz, mit der das Programm abgelaufen ist
+        """
+        if not os.path.exists("./logs"):
+            os.makedirs("./logs")
+        filename = "./logs/" + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M") + "_" + self.currSeq.name + ".csv"
+        datafile = open(filename, 'w')
+        datafile.write("#TargetHeating, CurrentHeating, TargetCooling, CurrentCooling\n")
+        for x in datalog:
+            datafile.write(("{}, {}, {}, {}\n".format(x[0], x[1], x[2], x[3])))
+        datafile.close()
+        self.logger.info("Logdatei mit Messdaten wurde erstellt: {}".format(filename))
 
 
-def start(sequence):
-    """
-        Funktion zum Starten des Controller Threads.
-        Sollte vom Starten-Button aufgerufen werden.
+    def start(self, sequence):
+        """
+            Funktion zum Starten des Controller Threads.
+            Sollte vom Starten-Button aufgerufen werden.
 
-    :param sequence: Sequenz die vom Controller abgelaufen wird.
-    """
-    global running, datalog
-    logger.info("Gestartet")
-    t = Thread(target=controller,args=(sequence,))
-    t.start()
-    #t.join()
-
+        :param sequence: Sequenz die vom Controller abgelaufen wird.
+        """
+        self.logger.info("Gestartet")
+        t = Thread(target=self.controller, args=(sequence,))
+        t.start()
+        # t.join()
 
 
-def stop():
-    """
-        Funktion zum stoppen des Controller Threads.
-        Sollte von einem mögliche Stop-Button aufgerufen werden
+    def stop(self):
+        """
+            Funktion zum stoppen des Controller Threads.
+            Sollte von einem mögliche Stop-Button aufgerufen werden
 
-    """
-    global running
-    running = False
-    logger.info("Abgebrochen")
+        """
+        self.running = False
+        self.logger.info("Abgebrochen")
 
-def initMain():
-
-    initLogger()
-
-    # Hardware Adapter initalisieren
-    # hardware = hardwareAdapter.hardwareAdapter()
-
-    # Import der zur Verfuegung stehenden Sequenzen
-    global sequences
-    sequences = SequenceHandler.importSequences()           
 
 if __name__ == '__main__':
-    initMain()
-    currentSequence = sequences[0]
-    start(currentSequence)
+    sub = Sublimator()
+    currentSequence = sub.sequences[0]
+    sub.start(currentSequence)
 
