@@ -4,6 +4,7 @@ import RPi.GPIO as GPIO
 import atexit
 import MCP3208
 import time
+import random
 
 #Heiz- und Kuehlelemente Pins
 HEAT=18
@@ -57,6 +58,12 @@ class hardwareAdapter:
         heat = (value+.0001)/1000
         temperature=3.606 * (heat * heat) + 128.58 * heat - 242.86
         return round(temperature,2)
+
+    """
+    Prototyp-Funktion liefert die Intensität der Schranke im Bereich [0,1]
+    """
+    def getIntensity(self):
+        return random.random()
 
 if __name__ == '__main__':
     hA=hardwareAdapter()
