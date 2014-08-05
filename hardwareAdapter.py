@@ -4,11 +4,13 @@ import RPi.GPIO as GPIO
 import atexit
 import MCP3208
 import time
-import random
+import Adafruit_MCP4725 as MCP4725
 
 # Heiz- und Kuehlelemente Pins
 HEAT = 18
 COOL = 16
+DA_ADDRESS=0x60
+TARGET_LIGHT_VALUE=3685
 
 
 class hardwareAdapter:
@@ -21,6 +23,11 @@ class hardwareAdapter:
 
         # Initialisierung des A/D Wandlers,
         self.spi = MCP3208.MCP3208(0)
+
+        # Initialisierung des D/A Wandlers
+        self.da=MCP4725.MCP4725(DA_ADDRESS)
+
+        self.start_brightness=TARGET_LIGHT_VALUE+0.0
 
         atexit.register(self.gpioOFF)
 
@@ -59,31 +66,13 @@ class hardwareAdapter:
 
 
     """
-    Prototyp-Funktion liefert die Intensität der Schranke im Bereich [0,1]
+    Prototyp-Funktion liefert die Intensitaet der Schranke im Bereich [0,1] in Bezug zum Ausgangswert
     """
     def getIntensity(self):
-        return random.random()
+        return self.spi.read(3)/self.start_brightness
 
 if __name__ == '__main__':
     hA = hardwareAdapter()
-    """hA.coolingON()
-    temp=0
-    cool=0
-    pC=0
-    pH=0
-    counter =0
-    while True:
-        temp=hA.getTemperatureHeating()
-        cool=hA.getTemperatureCooling()
-        pC=GPIO.input(COOL)
-        pH=GPIO.input(HEAT)
-        print "Temperatur: %2f  Kuehlung: %2f  PinHeat: %d  PinCool: %d\n" %(temp,cool,pH,pC)
-        counter += 1
-        if counter ==10:
-            hA.coolingOFF()
-        time.sleep(3)"""
-    for i in [3, 5, 7, 8, 10, 11, 12, 13, 15, 16, 18, 19, 21, 22, 23, 24, 26]:
-        func = GPIO.gpio_function(i)
-        if func == GPIO.IN or func == GPIO.OUT:
-            pin = GPIO.input(i)
-        print "Pin: %d PinFunktion: " + func + " Status: %d" % (i, pin)
+    for i in range(50):
+        print(i,hA.getIntensity())
+        time.sleep(2)
