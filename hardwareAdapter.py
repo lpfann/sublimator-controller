@@ -64,6 +64,20 @@ class hardwareAdapter:
         temperature = 3.606 * (heat * heat) + 128.58 * heat - 242.86
         return round(temperature, 2)
 
+    def setLedVoltage(self,voltage):
+        self.da.setVoltage(voltage,persist=True)
+
+    def configLightBarrier(self):
+        brightness=self.getBrightness()
+        voltage=2000
+        while(brightness!=TARGET_LIGHT_VALUE):
+            self.setLedVoltage(voltage)
+            time.sleep(10)
+            brightness=self.getBrightness()
+        return brightness
+
+    def getBrightness(self):
+        return self.spi.read(3)
 
     """
     Prototyp-Funktion liefert die Intensitaet der Schranke im Bereich [0,1] in Bezug zum Ausgangswert
