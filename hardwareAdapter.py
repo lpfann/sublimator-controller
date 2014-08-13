@@ -79,6 +79,7 @@ class hardwareAdapter:
         while(actual-start<600):
             mini=mini-500
             maxi=maxi+500
+            brightness=self.getBrightness()
             while(abs(brightness-TARGET_LIGHT_VALUE)>=tolerance):
                 self.setLedVoltage(voltage)
                 time.sleep(10)
