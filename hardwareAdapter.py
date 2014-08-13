@@ -71,14 +71,14 @@ class hardwareAdapter:
         brightness=self.getBrightness()
         voltage=2000
         i=0
-        while(brightness!=TARGET_LIGHT_VALUE):
+        while(abs(brightness-TARGET_LIGHT_VALUE)!=30):
             self.setLedVoltage(voltage)
             time.sleep(10)
             brightness=self.getBrightness()
             if debug:
                 print(i,voltage,brightness)
                 i+=1
-            if brightness < TARGET_LIGHT_VALUE:
+            if brightness > TARGET_LIGHT_VALUE:
                 voltage=voltage/2
             else:
                 voltage=voltage+(voltage/2)
