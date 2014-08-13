@@ -69,7 +69,9 @@ class hardwareAdapter:
 
     def configLightBarrier(self,debug=False):
         brightness=self.getBrightness()
-        voltage=2000
+        mini=0
+        maxi=4000
+        voltage=(mini+maxi)/2
         i=0
         while(abs(brightness-TARGET_LIGHT_VALUE)!=30):
             self.setLedVoltage(voltage)
@@ -79,10 +81,14 @@ class hardwareAdapter:
                 print(i,voltage,brightness)
                 i+=1
             if brightness > TARGET_LIGHT_VALUE:
-                voltage=voltage/2
+                maxi=voltage
             else:
-                voltage=voltage+(voltage/2)
+                mini=voltage
+            voltage=(mini+maxi)/2
         return brightness+0.0
+
+    def binSearch(self,min,max):
+        return (min+max)/2
 
     def getBrightness(self):
         return self.spi.read(3)
