@@ -98,6 +98,7 @@ class hardwareAdapter:
                 voltage=(mini+maxi)/2
             if debug:
                 print(i,voltage,brightness,time.time()-start)
+            time.sleep(5)
             actual=time.time()
         return brightness+0.0
 
