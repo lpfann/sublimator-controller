@@ -27,7 +27,7 @@ class hardwareAdapter:
         # Initialisierung des D/A Wandlers
         self.da=MCP4725.MCP4725(DA_ADDRESS)
 
-        self.start_brightness=TARGET_LIGHT_VALUE+0.0
+        self.start_brightness=self.configLightBarrier(debug=True)
 
         atexit.register(self.gpioOFF)
 
@@ -67,14 +67,22 @@ class hardwareAdapter:
     def setLedVoltage(self,voltage):
         self.da.setVoltage(voltage,persist=True)
 
-    def configLightBarrier(self):
+    def configLightBarrier(self,debug=False):
         brightness=self.getBrightness()
         voltage=2000
+        i=0
         while(brightness!=TARGET_LIGHT_VALUE):
             self.setLedVoltage(voltage)
             time.sleep(10)
             brightness=self.getBrightness()
-        return brightness
+            if debug:
+                print(i,voltage,brightness)
+                i+=1
+            if brightness < TARGET_LIGHT_VALUE:
+                voltage=voltage/2
+            else:
+                voltage=voltage+(voltage/2)
+        return brightness+0.0
 
     def getBrightness(self):
         return self.spi.read(3)
