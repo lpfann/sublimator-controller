@@ -74,7 +74,7 @@ class hardwareAdapter:
         maxi=3500
         voltage=(mini+maxi)/2
         i=0
-        start=time.clock()+0.0
+        start=time.time()+0.0
         actual=start
         while(actual-start<600):
             mini=mini-500
@@ -85,14 +85,14 @@ class hardwareAdapter:
                 time.sleep(10)
                 brightness=self.getBrightness()
                 if debug:
-                    print(i,voltage,brightness,time.clock()-start)
+                    print(i,voltage,brightness,time.time()-start)
                     i+=1
                 if brightness > TARGET_LIGHT_VALUE:
                     maxi=voltage
                 else:
                     mini=voltage
                 voltage=(mini+maxi)/2
-            actual=time.clock()
+            actual=time.time()
         return brightness+0.0
 
     def getBrightness(self):
