@@ -21,21 +21,22 @@ class hardwareAdapter:
         GPIO.setup(HEAT, GPIO.OUT)
         GPIO.setup(COOL, GPIO.OUT)
 
+        atexit.register(self.gpioOFF)
+
         # Initialisierung des A/D Wandlers,
         self.spi = MCP3208.MCP3208(0)
 
         # Initialisierung des D/A Wandlers
         self.da=MCP4725.MCP4725(DA_ADDRESS)
-
         self.start_brightness=self.configLightBarrier(debug=True)
 
-        atexit.register(self.gpioOFF)
 
     def gpioOFF(self):
         #Ausschalten der Pins
         GPIO.output(HEAT, False)
         GPIO.output(COOL, False)
         GPIO.cleanup()
+        self.setLedVoltage(0)
 
     def start(self):
         self.heatingON()
@@ -73,7 +74,7 @@ class hardwareAdapter:
         maxi=3500
         voltage=(mini+maxi)/2
         i=0
-        start=time.clock()
+        start=time.clock()+0.0
         actual=start
         while(actual-start<600):
             mini=mini-500
@@ -83,7 +84,7 @@ class hardwareAdapter:
                 time.sleep(10)
                 brightness=self.getBrightness()
                 if debug:
-                    print(i,voltage,brightness)
+                    print(i,voltage,brightness,time.clock()-start)
                     i+=1
                 if brightness > TARGET_LIGHT_VALUE:
                     maxi=voltage
