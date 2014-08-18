@@ -80,13 +80,14 @@ class hardwareAdapter:
         start=time.time()+0.0
         actual=start
         while(actual-start<loopTime):
-            mini=mini-200
-            maxi=maxi+200
-            if mini<0:
-                mini=0
-            if maxi > 4000:
-                maxi=4000
             brightness=self.getBrightness()
+            if abs(brightness-self.__TARGET_LIGHT_VALUE__) >= tolerance:
+                if brightness < self.__TARGET_LIGHT_VALUE__:
+                    maxi=maxi+(maxi/2)
+                    if maxi > 4000:
+                        maxi=4000
+                else:
+                    mini=mini/2
             while(abs(brightness-self.__TARGET_LIGHT_VALUE__)>=tolerance):
                 self.setLedVoltage(voltage)
                 time.sleep(waitTimeChange)
