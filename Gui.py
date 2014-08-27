@@ -1,11 +1,14 @@
 # coding=utf-8
 import logging
 from Tkinter import *
+from threading import Thread
+import tkMessageBox
 from matplotlib.figure import Figure
 import Sublimator
 import matplotlib
 import numpy as np
 import datetime
+import time
 
 matplotlib.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
@@ -13,6 +16,35 @@ from matplotlib import pyplot as plt
 
 MAX_NUM_PLOTDATA = 100
 
+
+class CalibrationDialog:
+    '''
+        Dialog for Calibrating the lightbarrier for the current light conditions.
+    '''
+    def __init__(self, parent):
+        top = self.top = Toplevel(parent)
+        #TODO Calibration Time variable
+        Label(top, text="Calibration in progress.\n Best results are achieved after 10 Minutes of calibration").pack()
+        self.timelabel = Label(top, text="Time:{}".format(np.random.random()))
+        self.timelabel.pack()
+        self.timethread = Thread(target=self.updateTIme)
+        self.threadrunning = True
+        self.timethread.start()
+
+        b = Button(top, text="Finish Calibration", command=self.finish)
+        b.pack(pady=5)
+
+        top.protocol('WM_DELETE_WINDOW', self.finish)
+
+    def finish(self):
+        self.threadrunning=False
+        self.timethread.join()
+        self.top.destroy()
+
+    def updateTIme(self):
+        while self.threadrunning:
+            self.timelabel.config(text="Time:{}".format(np.random.random()))
+            time.sleep(1)
 
 class Gui(Frame):
     def __init__(self, sublimator, master=None):
@@ -42,6 +74,7 @@ class Gui(Frame):
         self.showTextline(event=None)
         self.createDropdown()
         self.createStartButton()
+        self.createCalibrationButton()
         self.showDiagram()
         self.saveDiagram()
 
@@ -107,6 +140,15 @@ class Gui(Frame):
         self.startButton.bind("<Button-1>", self.startButton_Click)
         self.startButton.grid(column=1, row=0, sticky=E + W + N + S)
 
+    def createCalibrationButton(self):
+        '''
+        Erstellt den Kalibrierungsbutton
+        '''
+        self.calibrationButton = Button(self.buttoncontainer)
+        self.calibrationButton["text"] = "Lichtschranke kalibrieren"
+        self.calibrationButton.bind("<Button-1>", self.calibrateButton_Click)
+        self.calibrationButton.grid(column=0, row=2, sticky=E + W + N + S)
+
 
     def saveDiagram(self):
         self.checkvariable = IntVar()
@@ -115,7 +157,6 @@ class Gui(Frame):
 
 
     def startButton_Click(self, event):
-
         if not self.sublimator.running:
             self.sublimator.start(self.sequences[self.runner])
             self.plotData = [(0, 0, 0, 0)] * MAX_NUM_PLOTDATA
@@ -125,6 +166,12 @@ class Gui(Frame):
             self.sublimator.stop()
             self.startButton.config(text="Start")
             self.saveCheckbox.configure(state="normal")
+
+
+    def calibrateButton_Click(self, event):
+        dialog = CalibrationDialog(root)
+        self.wait_window(dialog.top)
+
 
     def showTextline(self, event, *args):
         '''
