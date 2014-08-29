@@ -11,7 +11,7 @@ class hardwareAdapter:
 
     __activeLightBarrier__=False
 
-    def __init__(self,heat=18,cool=16,daAdress=0x60,targetLightValue=3685):
+    def __init__(self,heat=18,cool=16,daAdress=0x60,targetLightValue=3685,activateLightBarrier=False):
         # Heiz- und Kuehlelemente Pins
         self.__HEAT__=heat
         self.__COOL__=cool
@@ -31,7 +31,8 @@ class hardwareAdapter:
 
         # Initialisierung des D/A Wandlers
         self.da=MCP4725.MCP4725(self.__DA_ADRESS__)
-        self.configLightBarrier(debug=True)
+        if activateLightBarrier:
+            self.configLightBarrier(debug=False)
 
     def gpioOFF(self):
         #Ausschalten der Pins
