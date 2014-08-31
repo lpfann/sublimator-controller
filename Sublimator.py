@@ -123,7 +123,9 @@ class Sublimator():
             # Temperatur regulieren
             self.tempregulator(targetheatingtemp, targetcoolingtemp)
             # Ausgabe der momentanen Daten
-            self.datalog.append((targetheatingtemp, self.hardware.getTemperatureHeating(),targetcoolingtemp, self.hardware.getTemperatureCooling()))
+            self.datalog.append((targetheatingtemp, self.hardware.getTemperatureHeating(),
+                targetcoolingtemp, self.hardware.getTemperatureCooling(),
+                str(self.hardware.getIntensity())))
             # Pause
             time.sleep(0.3)
 
@@ -131,7 +133,7 @@ class Sublimator():
         self.hardware.heatingOFF()
         self.hardware.coolingOFF()
         self.writedatatofile(self.datalog)  # Datenlog schreiben
-        self.logger.info(u"Sequenz beendet")
+        self.logger.info(u"Sequence complete")
 
     def writedatatofile(self, datalog):
         """
@@ -143,11 +145,13 @@ class Sublimator():
             os.makedirs("./logs")
         filename = "./logs/" + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M") + "_" + self.currSeq.name + ".csv"
         datafile = open(filename, 'w')
-        datafile.write("#TargetHeating, CurrentHeating, TargetCooling, CurrentCooling\n")
+        # writing header line
+        datafile.write("#TargetHeating, CurrentHeating, TargetCooling, CurrentCooling, LightIntensity\n")
         for x in datalog:
-            datafile.write(("{}, {}, {}, {}\n".format(x[0], x[1], x[2], x[3])))
+            # writing each tuple from the datalog into comma seperated lines
+            datafile.write(("{}, {}, {}, {}, {}\n".format(x[0], x[1], x[2], x[3], x[4] )))
         datafile.close()
-        self.logger.info("Logdatei mit Messdaten wurde erstellt: {}".format(filename))
+        self.logger.info("Logfile with Data was created: {}".format(filename))
 
     def start(self, sequence):
         """
@@ -156,7 +160,7 @@ class Sublimator():
 
         :param sequence: Sequenz die vom Controller abgelaufen wird.
         """
-        self.logger.info("Gestartet")
+        self.logger.info("Sequence started.")
         t = Thread(target=self.controller, args=(sequence,))
         t.start()
         # t.join()
@@ -168,7 +172,7 @@ class Sublimator():
 
         """
         self.running = False
-        self.logger.info("Abgebrochen")
+        self.logger.info("Sequence stopped.")
 
 
 if __name__ == '__main__':
