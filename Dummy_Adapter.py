@@ -1,12 +1,16 @@
 import time
 import thread
 import random
-
-class Dummy_Adapter:
+class hardwareAdapter:
+    '''
+        hardwareAdapter with Dummy Data for testing purposes
+    '''
 
     def __init__(self,heat=18,cool=16,daAdress=0x60,targetLightValue=3685,activateLightBarrier=False):
         self.coolTemp=22
         self.heatTemp=24
+        self.cooling=False
+        self.heating=False
 
         if activateLightBarrier:
             self.configLightBarrier()

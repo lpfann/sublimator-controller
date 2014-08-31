@@ -1,31 +1,40 @@
 #!/usr/bin/env python2
 # coding=utf-8
 # Programm zur Steuerung des Sublimator-Prototypen
-# Autor: Dennis Paulus
+# Autor: Jens Schulz, Dominik Gründing, Lukas Pfannnschmidt
 
-#import Anweisungen der genutzten Libraries
 import os
-import random
 import time
 from threading import Timer
 from threading import Thread
 import logging
 import SequenceHandler
-# import hardwareAdapter
 import datetime
 import StringIO
-#import matplotlib.pyplot as plt
 
+'''
+    Import of hardwareAdapter if RaspberryPi Library is present.
+
+'''
+import imp
+try:
+    imp.find_module('RPi')
+    import hardwareAdapter
+    print("RaspberryPi detected")
+except ImportError:
+    import Dummy_Adapter as hardwareAdapter
+    print("No RaspberryPi detected. Using Dummy Data")
 
 
 class Sublimator():
+
     def __init__(self):
         self.currSeq = None
         self.running = False
         self.datalog = []
         self.initLogger()
         # Hardware Adapter initalisieren
-        # self.hardware = hardwareAdapter.hardwareAdapter()
+        self.hardware = hardwareAdapter.hardwareAdapter()
         self.progindex = 0
         # Import der zur Verfuegung stehenden Sequenzen
         self.sequences = SequenceHandler.importSequences(self.logger)
@@ -54,7 +63,6 @@ class Sublimator():
         self.logger.addHandler(filehandler)
         self.logger.addHandler(consolehandler)
 
-
     def counter(self):
         """
              Zeitzähler für die Programmzeiten
@@ -64,7 +72,6 @@ class Sublimator():
         # Methode die im Timer Thread aufgerufen wird
         self.progindex += 1
 
-
     def tempregulator(self, targetheatingtemp, targetcoolingtemp):
         """
         Funktion, welche die Temperatur reguliert um den Zielwerten zu entsprechen
@@ -72,14 +79,14 @@ class Sublimator():
         :param targetcoolingtemp: Zielwert für Kühlung
         """
         temp_delay = 2  # Temperatur-Delay um weiteres aufheizen über TargetHeatingTemp zu verhindern
-        # if self.hardware.getTemperatureHeating() <= targetheatingtemp - temp_delay:
-        # self.hardware.heatingON()
-        # else:
-        #     self.hardware.heatingOFF()
-        # if self.hardware.getTemperatureCooling() >= targetcoolingtemp:
-        #     self.hardware.coolingON()
-        # else:
-        #     self.hardware.coolingOFF()
+        if self.hardware.getTemperatureHeating() <= targetheatingtemp - temp_delay:
+            self.hardware.heatingON()
+        else:
+            self.hardware.heatingOFF()
+        if self.hardware.getTemperatureCooling() >= targetcoolingtemp:
+            self.hardware.coolingON()
+        else:
+            self.hardware.coolingOFF()
 
 
     def controller(self, currSeq):
@@ -99,7 +106,6 @@ class Sublimator():
         oldindex = self.progindex
         self.running = True
         self.datalog = []
-        # plt = initlog()
         # Schleife die solange läuft, bis die Sequenz komplett durchlaufen ist oder von außen abgebrochen wird.
         while self.running:
             # Ablauf der Sequenz steuern
@@ -117,17 +123,15 @@ class Sublimator():
             # Temperatur regulieren
             self.tempregulator(targetheatingtemp, targetcoolingtemp)
             # Ausgabe der momentanen Daten
-            # datalog.append((targetheatingtemp, self.hardware.getTemperatureHeating(),targetcoolingtemp, self.hardware.getTemperatureCooling()))
-            self.datalog.append((targetheatingtemp, 0, targetcoolingtemp, 0))
+            self.datalog.append((targetheatingtemp, self.hardware.getTemperatureHeating(),targetcoolingtemp, self.hardware.getTemperatureCooling()))
             # Pause
             time.sleep(0.3)
 
         # Heizung und Kühlung ausschalten nach Programm
-        # self.hardware.heatingOFF()
-        # self.hardware.coolingOFF()
+        self.hardware.heatingOFF()
+        self.hardware.coolingOFF()
         self.writedatatofile(self.datalog)  # Datenlog schreiben
         self.logger.info(u"Sequenz beendet")
-
 
     def writedatatofile(self, datalog):
         """
@@ -145,7 +149,6 @@ class Sublimator():
         datafile.close()
         self.logger.info("Logdatei mit Messdaten wurde erstellt: {}".format(filename))
 
-
     def start(self, sequence):
         """
             Funktion zum Starten des Controller Threads.
@@ -157,7 +160,6 @@ class Sublimator():
         t = Thread(target=self.controller, args=(sequence,))
         t.start()
         # t.join()
-
 
     def stop(self):
         """
@@ -173,4 +175,3 @@ if __name__ == '__main__':
     sub = Sublimator()
     currentSequence = sub.sequences[0]
     sub.start(currentSequence)
-
