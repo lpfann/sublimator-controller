@@ -5,53 +5,57 @@ import atexit
 import MCP3208
 import time
 import Adafruit_MCP4725 as MCP4725
-
-# Heiz- und Kuehlelemente Pins
-HEAT = 18
-COOL = 16
-DA_ADDRESS=0x60
-TARGET_LIGHT_VALUE=3685
-
+import thread
 
 class hardwareAdapter:
-    def __init__(self):
+
+    __activeLightBarrier__=False
+
+    def __init__(self,heat=18,cool=16,daAdress=0x60,targetLightValue=3685,activateLightBarrier=False):
+        # Heiz- und Kuehlelemente Pins
+        self.__HEAT__=heat
+        self.__COOL__=cool
+        self.__DA_ADRESS__=daAdress
+        self.__TARGET_LIGHT_VALUE__=targetLightValue
+
         #Konfiguration der GPIO-Pins
         GPIO.setmode(GPIO.BOARD)
         GPIO.setwarnings(False)
-        GPIO.setup(HEAT, GPIO.OUT)
-        GPIO.setup(COOL, GPIO.OUT)
+        GPIO.setup(self.__HEAT__, GPIO.OUT)
+        GPIO.setup(self.__COOL__, GPIO.OUT)
+
+        atexit.register(self.gpioOFF)
 
         # Initialisierung des A/D Wandlers,
         self.spi = MCP3208.MCP3208(0)
 
         # Initialisierung des D/A Wandlers
-        self.da=MCP4725.MCP4725(DA_ADDRESS)
-
-        self.start_brightness=TARGET_LIGHT_VALUE+0.0
-
-        atexit.register(self.gpioOFF)
+        self.da=MCP4725.MCP4725(self.__DA_ADRESS__)
+        if activateLightBarrier:
+            self.configLightBarrier(debug=False)
 
     def gpioOFF(self):
         #Ausschalten der Pins
-        GPIO.output(HEAT, False)
-        GPIO.output(COOL, False)
+        GPIO.output(self.__HEAT__, False)
+        GPIO.output(self.__COOL__, False)
         GPIO.cleanup()
+        self.setLedVoltage(0)
 
     def start(self):
         self.heatingON()
         self.coolingON()
 
     def heatingON(self):
-        GPIO.output(HEAT, True)
+        GPIO.output(self.__HEAT__, True)
 
     def heatingOFF(self):
-        GPIO.output(HEAT, False)
+        GPIO.output(self.__HEAT__, False)
 
     def coolingON(self):
-        GPIO.output(COOL, True)
+        GPIO.output(self.__COOL__, True)
 
     def coolingOFF(self):
-        GPIO.output(COOL, False)
+        GPIO.output(self.__COOL__, False)
 
     def getTemperatureCooling(self):
         value = self.spi.read(0)
@@ -64,29 +68,70 @@ class hardwareAdapter:
         temperature = 3.606 * (heat * heat) + 128.58 * heat - 242.86
         return round(temperature, 2)
 
-    def setLedVoltage(self,voltage):
-        self.da.setVoltage(voltage,persist=True)
+    def setLedVoltage(self,voltage,persist=True):
+        self.da.setVoltage(voltage,persist=persist)
 
-    def configLightBarrier(self):
+    def __configureLightBarrier__(self,tolerance=30,debug=False,waitTimeChange=10,waitTimeLoop=5,loopTime=600):
+        self.__activeLightBarrier__=False
         brightness=self.getBrightness()
-        voltage=2000
-        while(brightness!=TARGET_LIGHT_VALUE):
-            self.setLedVoltage(voltage)
-            time.sleep(10)
+        mini=500
+        maxi=3500
+        voltage=(mini+maxi)/2
+        i=0
+        start=time.time()+0.0
+        actual=start
+        while(actual-start<loopTime):
             brightness=self.getBrightness()
-        return brightness
+            if abs(brightness-self.__TARGET_LIGHT_VALUE__) >= tolerance:
+                if brightness < self.__TARGET_LIGHT_VALUE__:
+                    maxi=maxi+(maxi/2)
+                    if maxi > 4000:
+                        maxi=4000
+                else:
+                    mini=mini/2
+            while(abs(brightness-self.__TARGET_LIGHT_VALUE__)>=tolerance):
+                self.setLedVoltage(voltage)
+                time.sleep(waitTimeChange)
+                brightness=self.getBrightness()
+                if debug:
+                    print(i,voltage,brightness,time.time()-start)
+                    i+=1
+                if brightness > self.__TARGET_LIGHT_VALUE__:
+                    maxi=voltage
+                else:
+                    mini=voltage
+                voltage=(mini+maxi)/2
+            if debug:
+                print(i,voltage,brightness,time.time()-start)
+            time.sleep(waitTimeLoop)
+            actual=time.time()
+        self.start_brightness=brightness+0.0
+        self.__activeLightBarrier__=True
 
     def getBrightness(self):
         return self.spi.read(3)
+
+    def configLightBarrier(self,tolerance=30,debug=False,waitTimeChange=10,waitTimeLoop=5,loopTime=600):
+        try:
+            thread.start_new_thread(self.__configureLightBarrier__(),(tolerance,debug,waitTimeChange,waitTimeLoop,loopTime,))
+        except:
+            print("Fehler: starten des Thread zum Konfigurieren der Lichtschranke nicht moeglich")
+
+    def stateLightBarrier(self):
+        return self.__activeLightBarrier__
 
     """
     Prototyp-Funktion liefert die Intensitaet der Schranke im Bereich [0,1] in Bezug zum Ausgangswert
     """
     def getIntensity(self):
-        return self.spi.read(3)/self.start_brightness
+        if self.stateLightBarrier():
+            return self.spi.read(3)/self.start_brightness
+        else:
+            return -1.0
 
 if __name__ == '__main__':
     hA = hardwareAdapter()
-    for i in range(50):
-        print(i,hA.getIntensity())
-        time.sleep(2)
+    if hA.stateLightBarrier():
+        for i in range(50):
+            print(i,hA.getIntensity())
+            time.sleep(2)
