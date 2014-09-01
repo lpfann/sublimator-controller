@@ -22,29 +22,27 @@ class CalibrationDialog:
         Dialog for Calibrating the lightbarrier for the current light conditions.
     '''
     def __init__(self, parent):
+        self.parent = parent
         top = self.top = Toplevel(parent)
         #TODO Calibration Time variable
         Label(top, text="Calibration in progress.\n Best results are achieved after 10 Minutes of calibration").pack()
         self.timelabel = Label(top, text="Time:{}".format(np.random.random()))
         self.timelabel.pack()
-        self.timethread = Thread(target=self.updateTIme)
-        self.threadrunning = True
-        self.timethread.start()
-
+        self.calibrationRunning = True
+        self.updateTime()
         b = Button(top, text="Finish Calibration", command=self.finish)
         b.pack(pady=5)
 
         top.protocol('WM_DELETE_WINDOW', self.finish)
 
     def finish(self):
-        self.threadrunning=False
-        self.timethread.join()
+        self.calibrationRunning=False
         self.top.destroy()
 
-    def updateTIme(self):
-        while self.threadrunning:
+    def updateTime(self):
+        if self.calibrationRunning:
             self.timelabel.config(text="Time:{}".format(np.random.random()))
-            time.sleep(1)
+            self.parent.after(1000,self.updateTime)            
 
 class Gui(Frame):
     def __init__(self, sublimator, master=None):
