@@ -1,50 +1,56 @@
 # coding=utf-8
-import logging
 from Tkinter import *
-from threading import Thread
-import tkMessageBox
-from matplotlib.figure import Figure
 import Sublimator
 import matplotlib
 import numpy as np
 import datetime
-import time
 
 matplotlib.use('TkAgg')
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib import pyplot as plt
-
 MAX_NUM_PLOTDATA = 100
 
 
 class CalibrationDialog:
+
     '''
         Dialog for Calibrating the lightbarrier for the current light conditions.
     '''
+
     def __init__(self, parent):
-        self.parent = parent
         top = self.top = Toplevel(parent)
-        #TODO Calibration Time variable
-        Label(top, text="Calibration in progress.\n Best results are achieved after 10 Minutes of calibration").pack()
-        self.timelabel = Label(top, text="Time:{}".format(np.random.random()))
+        self.parent = parent
+        Label(
+            top, text="Calibration in progress.\n Best results are achieved after 10 Minutes of calibration").pack()
+        self.timelabel = Label(top, text="Time: 0:0")
         self.timelabel.pack()
+        self.startTime = datetime.datetime.utcnow()
         self.calibrationRunning = True
         self.updateTime()
         b = Button(top, text="Finish Calibration", command=self.finish)
         b.pack(pady=5)
-
+        b.focus_set()
+        top.wait_visibility()
         top.protocol('WM_DELETE_WINDOW', self.finish)
 
     def finish(self):
-        self.calibrationRunning=False
+        self.calibrationRunning = False
         self.top.destroy()
 
     def updateTime(self):
         if self.calibrationRunning:
-            self.timelabel.config(text="Time:{}".format(np.random.random()))
-            self.parent.after(1000,self.updateTime)            
+            self.passedTime = datetime.datetime.utcnow() - self.startTime
+            self.timelabel.config(
+                text="Calibration-Time: {}:{}".format(self.passedTime.seconds / 60, self.passedTime.seconds % 60))
+            self.parent.after(1000, self.updateTime)
+
 
 class Gui(Frame):
+
+    '''
+    Main Window for controlling the underlying program.
+    '''
+
     def __init__(self, sublimator, master=None):
         self.sublimator = sublimator
         self.coolinglist = []
@@ -76,18 +82,18 @@ class Gui(Frame):
         self.showDiagram()
         self.saveDiagram()
 
-
     def infoContainer(self):
         '''
-	    Erstellt Container fuer die Programminformationen und setzt eine Scrollbar ein.
-	    '''
+            Erstellt Container fuer die Programminformationen und setzt eine Scrollbar ein.
+            '''
         self.containercan = Canvas(self, borderwidth=0, width=30)
         self.infocontainer = Frame(self.containercan)
         self.vsb = Scrollbar(self, orient="vertical", command=self.containercan.yview)
         self.containercan.configure(yscrollcommand=self.vsb.set)
         self.containercan.grid(column=0, row=2, sticky=N + S + E)
         self.vsb.grid(column=1, row=2, sticky=N + S)
-        interior_id = self.containercan.create_window((0, 0), window=self.infocontainer, anchor="nw")
+        interior_id = self.containercan.create_window(
+            (0, 0), window=self.infocontainer, anchor="nw")
 
         def _configure_infocontainer(event):
             # update the scrollbars to match the size of the inner frame
@@ -97,21 +103,18 @@ class Gui(Frame):
                 # update the self.containercan's width to fit the inner frame
                 self.containercan.config(width=self.infocontainer.winfo_reqwidth())
 
-
         def _configure_containercan(event):
             if self.infocontainer.winfo_reqwidth() != self.containercan.winfo_width():
                 # update the inner frame's width to fill the self.containercan
                 self.containercan.itemconfigure(interior_id, width=self.containercan.winfo_width())
 
-
         self.infocontainer.bind('<Configure>', _configure_infocontainer)
         self.containercan.bind('<Configure>', _configure_containercan)
 
-
     def showText(self):
         '''
-	    Erstellt das Textfenster fuer die Log informationen.
-	    '''
+            Erstellt das Textfenster fuer die Log informationen.
+            '''
         self.scrollbar = Scrollbar(self)
         self.textField = Text(self, height=10, width=90)
         self.scrollbar.grid(column=3, row=0, sticky=N + S)
@@ -122,17 +125,17 @@ class Gui(Frame):
 
     def createDropdown(self):
         '''
-	Erstellt das Dropdownmenue fuer die Auswahl der Programme.
-	'''
-        self.dropdown = apply(OptionMenu, (self.buttoncontainer, self.variable) + tuple(self.testsequence))
+        Erstellt das Dropdownmenue fuer die Auswahl der Programme.
+        '''
+        self.dropdown = apply(
+            OptionMenu, (self.buttoncontainer, self.variable) + tuple(self.testsequence))
         self.variable.trace("w", self.showTextline)
         self.dropdown.grid(column=0, row=0, sticky=E + W + N + S)
 
-
     def createStartButton(self):
         '''
-	    Erstellt den Startbutton
-	    '''
+            Erstellt den Startbutton
+            '''
         self.startButton = Button(self.buttoncontainer)
         self.startButton["text"] = "Start"
         self.startButton.bind("<Button-1>", self.startButton_Click)
@@ -147,12 +150,11 @@ class Gui(Frame):
         self.calibrationButton.bind("<Button-1>", self.calibrateButton_Click)
         self.calibrationButton.grid(column=0, row=2, sticky=E + W + N + S)
 
-
     def saveDiagram(self):
         self.checkvariable = IntVar()
-        self.saveCheckbox = Checkbutton(self.buttoncontainer, text="save Diagram", variable=self.checkvariable)
+        self.saveCheckbox = Checkbutton(
+            self.buttoncontainer, text="save Diagram", variable=self.checkvariable)
         self.saveCheckbox.grid(column=0, row=1, sticky=E + W + N + S, columnspan=2)
-
 
     def startButton_Click(self, event):
         if not self.sublimator.running:
@@ -165,16 +167,20 @@ class Gui(Frame):
             self.startButton.config(text="Start")
             self.saveCheckbox.configure(state="normal")
 
-
     def calibrateButton_Click(self, event):
         dialog = CalibrationDialog(root)
+        dialog.top.transient(self.master)
+        dialog.top.grab_set()
         self.wait_window(dialog.top)
-
+        self.calibTime = dialog.passedTime
+        dialog.top.grab_release()
+        self.sublimator.logger.info("Light-Calibration was running for {} minutes and {} seconds.".format(
+            self.calibTime.seconds / 60, self.calibTime.seconds % 60))
 
     def showTextline(self, event, *args):
         '''
-	    sorgt fuer das fuellen des Informationscontainers bei Auswahl von Programm.
-	    '''
+            sorgt fuer das fuellen des Informationscontainers bei Auswahl von Programm.
+            '''
         self.runner = self.testsequence.index(self.variable.get())
         phases = Entry(self.infocontainer)
         phases.insert(END, "Phases of Program")
@@ -184,8 +190,8 @@ class Gui(Frame):
         for heat in self.heatinglist:
             heat.destroy()
         self.heatinglist[:] = []
-        for time in self.timelist:
-            time.destroy()
+        for time_entry in self.timelist:
+            time_entry.destroy()
         self.timelist[:] = []
         for cool in self.coolinglist:
             cool.destroy()
@@ -228,7 +234,6 @@ class Gui(Frame):
 
             t += 4
 
-
     def button02_Click(self, event):
 
         if not self.sublimator.running:
@@ -242,7 +247,6 @@ class Gui(Frame):
         else:
             self.sublimator.stop()
             self.button02.config(text="Start")
-
 
     def showDiagram(self):
         self.plotData = [(0, 0, 0, 0)] * MAX_NUM_PLOTDATA
@@ -280,13 +284,10 @@ class Gui(Frame):
                 self.seplist[self.sublimator.progindex].configure(disabledbackground="cyan")
                 self.seplist[self.sublimator.progindex - 1].configure(disabledbackground="white")
 
-
-
             # heatTempData = [x[1] for x in data]
             # ymin = float(min(heatTempData)) - 10
             # ymax = float(max(heatTempData)) + 10
             # self.ax.set_ylim(ymin, ymax)
-
             self.plotData = data
             if len(data) > MAX_NUM_PLOTDATA:
                 self.plotData = data
@@ -313,7 +314,7 @@ class Gui(Frame):
         self.after(1000, self.updatePlot)
 
         if not self.sublimator.running:
-            if self.progend == False and self.checkvariable.get() == 1:
+            if self.progend is False and self.checkvariable.get() is 1:
                 # Kompletter Plot wird am Ende gezeichnet wenn Checkox aktiv
                 figurefile = "./figs/" + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M") + "_" + self.sequences[
                     self.runner].name + ".png"
@@ -340,7 +341,6 @@ class Gui(Frame):
 
             self.startButton.config(text="Start")
             self.saveCheckbox.configure(state="normal")
-
 
     def updateConsole(self):
         '''
