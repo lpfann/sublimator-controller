@@ -101,7 +101,7 @@ class Dummy_Adapter:
     def stateLightBarrier(self):
         return self.__activeLightBarrier__
 
-    def activeConfugaration(self):
+    def activeConfiguration(self):
         try:
             return self.thread.isAlive()
         except:

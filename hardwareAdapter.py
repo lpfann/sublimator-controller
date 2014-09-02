@@ -148,7 +148,7 @@ class hardwareAdapter:
         except:
             return False
 
-    def activeConfugaration(self):
+    def activeConfiguration(self):
         try:
             return self.thread.isAlive()
         except:
