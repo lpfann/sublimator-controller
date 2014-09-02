@@ -5,7 +5,7 @@ import atexit
 import MCP3208
 import time
 import Adafruit_MCP4725 as MCP4725
-import thread
+import threading
 
 class hardwareAdapter:
 
@@ -31,6 +31,8 @@ class hardwareAdapter:
 
         # Initialisierung des D/A Wandlers
         self.da=MCP4725.MCP4725(self.__DA_ADRESS__)
+
+        self.threadSignal=threading.Event()
         if activateLightBarrier:
             self.configLightBarrier(debug=False)
 
@@ -71,7 +73,7 @@ class hardwareAdapter:
     def setLedVoltage(self,voltage,persist=True):
         self.da.setVoltage(voltage,persist=persist)
 
-    def __configureLightBarrier__(self,tolerance=30,debug=False,waitTimeChange=10,waitTimeLoop=5,loopTime=600):
+    def __configureLightBarrier__(self,stopSignal,tolerance=30,debug=False,waitTimeChange=10,waitTimeLoop=5,loopTime=600):
         self.__activeLightBarrier__=False
         brightness=self.getBrightness()
         mini=500
@@ -81,6 +83,9 @@ class hardwareAdapter:
         start=time.time()+0.0
         actual=start
         while(actual-start<loopTime):
+            if stopSignal.is_set():
+                self.setLedVoltage(0)
+                self.__activeLightBarrier__=False
             brightness=self.getBrightness()
             if abs(brightness-self.__TARGET_LIGHT_VALUE__) >= tolerance:
                 if brightness < self.__TARGET_LIGHT_VALUE__:
@@ -90,6 +95,9 @@ class hardwareAdapter:
                 else:
                     mini=mini/2
             while(abs(brightness-self.__TARGET_LIGHT_VALUE__)>=tolerance):
+                if stopSignal.is_set():
+                    self.setLedVoltage(0)
+                    self.__activeLightBarrier__=False
                 self.setLedVoltage(voltage)
                 time.sleep(waitTimeChange)
                 brightness=self.getBrightness()
@@ -111,9 +119,13 @@ class hardwareAdapter:
     def getBrightness(self):
         return self.spi.read(3)
 
-    def configLightBarrier(self,tolerance=30,debug=False,waitTimeChange=10,waitTimeLoop=5,loopTime=600):
+    def configLightBarrier(self,tolerance=30,debug=False,waitTimeChange=10,waitTimeLoop=5,runTime=600):
         try:
-            thread.start_new_thread(self.__configureLightBarrier__(),(tolerance,debug,waitTimeChange,waitTimeLoop,loopTime,))
+            if not self.activeConfugaration():
+                self.threadSignal.clear()
+                self.thread=threading.Thread(target=self.__configureLightBarrier__,args=(self.threadSignal,tolerance,debug,waitTimeChange,waitTimeLoop,runTime))
+                self.thread.setDaemon(True)
+                self.thread.start()
         except:
             print("Fehler: starten des Thread zum Konfigurieren der Lichtschranke nicht moeglich")
 
@@ -128,6 +140,19 @@ class hardwareAdapter:
             return self.spi.read(3)/self.start_brightness
         else:
             return -1.0
+
+    def stopCalibrating(self):
+        try:
+            self.threadSignal.set()
+            return True
+        except:
+            return False
+
+    def activeConfugaration(self):
+        try:
+            return self.thread.isAlive()
+        except:
+            return False
 
 if __name__ == '__main__':
     hA = hardwareAdapter()

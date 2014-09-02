@@ -1,16 +1,18 @@
 import time
-import thread
+import threading
 import random
-class hardwareAdapter:
+
+class Dummy_Adapter:
     '''
         hardwareAdapter with Dummy Data for testing purposes
     '''
-
     def __init__(self,heat=18,cool=16,daAdress=0x60,targetLightValue=3685,activateLightBarrier=False):
         self.coolTemp=22
         self.heatTemp=24
         self.cooling=False
         self.heating=False
+
+        self.threadSignal=threading.Event()
 
         if activateLightBarrier:
             self.configLightBarrier()
@@ -51,9 +53,22 @@ class hardwareAdapter:
         return
 
 
-    def __configureLightBarrier__(self,tolerance=30,debug=False,waitTimeChange=10,waitTimeLoop=5,loopTime=600):
+    def __configureLightBarrier__(self,stopSignal,tolerance=30,debug=False,waitTimeChange=10,waitTimeLoop=5,loopTime=600):
         self.__activeLightBarrier__=False
-        time.sleep(loopTime)
+        start=time.time()+0.0
+        actual=start
+        if debug:
+            i=1
+        while(actual-start<loopTime):
+            if debug:
+                print(i,stopSignal.is_set())
+            if stopSignal.is_set():
+                if debug:
+                    print(i,"Stopp")
+                exit()
+            time.sleep(waitTimeLoop)
+            actual=time.time()
+            i=i+1
         self.brightness=3960
         self.brightAct=self.brightness
         self.__activeLightBarrier__=True
@@ -66,17 +81,41 @@ class hardwareAdapter:
             self.brightAct=4095
         return self.brightAct
 
-    def configLightBarrier(self,tolerance=30,debug=False,waitTimeChange=10,waitTimeLoop=5,loopTime=600):
+    def configLightBarrier(self,tolerance=30,debug=False,waitTimeChange=10,waitTimeLoop=5,runTime=600):
         try:
-            thread.start_new_thread(self.__configureLightBarrier__(),(tolerance,debug,waitTimeChange,waitTimeLoop,loopTime,))
+            if not self.activeConfugaration():
+                self.threadSignal.clear()
+                self.thread=threading.Thread(target=self.__configureLightBarrier__,args=(self.threadSignal,tolerance,debug,waitTimeChange,waitTimeLoop,runTime))
+                self.thread.setDaemon(True)
+                self.thread.start()
         except:
             print("Fehler: starten des Thread zum Konfigurieren der Lichtschranke nicht moeglich")
 
+    def stopCalibrating(self):
+        try:
+            self.threadSignal.set()
+            return True
+        except:
+            return False
+
     def stateLightBarrier(self):
         return self.__activeLightBarrier__
+
+    def activeConfugaration(self):
+        try:
+            return self.thread.isAlive()
+        except:
+            return False
 
     def getIntensity(self):
         if self.stateLightBarrier():
             return self.getBrightness()/self.brightness
         else:
             return -1.0
+
+if __name__=='__main__':
+    ha=Dummy_Adapter()
+    ha.configLightBarrier(runTime=10000,debug=True)
+    if ha.activeConfugaration():
+        time.sleep(5)
+    print(ha.stopCalibrating())
