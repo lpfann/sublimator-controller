@@ -28,7 +28,7 @@ class CalibrationDialog:
         self.startTime = datetime.datetime.utcnow()
         self.calibrationRunning = True
         self.updateTime()
-        b = Button(top, text="FinishCalibration", command=self.finish)
+        b = Button(top, text="Finish Calibration", command=self.finish)
         b.pack(pady=5)
         b.focus_set()
         top.wait_visibility()
