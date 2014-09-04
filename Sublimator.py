@@ -20,9 +20,11 @@ import imp
 try:
     imp.find_module('RPi')
     import hardwareAdapter
+    importedHardware = hardwareAdapter.hardwareAdapter() 
     print("RaspberryPi detected")
 except ImportError:
     import Dummy_Adapter as hardwareAdapter
+    importedHardware = hardwareAdapter.Dummy_Adapter() 
     print("No RaspberryPi detected. Using Dummy Data")
 
 
@@ -34,7 +36,7 @@ class Sublimator():
         self.datalog = []
         self.initLogger()
         # Hardware Adapter initalisieren
-        self.hardware = hardwareAdapter.hardwareAdapter()
+        self.hardware = importedHardware
         self.progindex = 0
         # Import der zur Verfuegung stehenden Sequenzen
         self.sequences = SequenceHandler.importSequences(self.logger)
@@ -88,6 +90,11 @@ class Sublimator():
         else:
             self.hardware.coolingOFF()
 
+    def calib_start(self):
+        self.hardware.configLightBarrier()
+
+    def calib_stop(self):
+        self.hardware.stopCalibrating()
 
     def controller(self, currSeq):
         """

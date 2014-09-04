@@ -17,7 +17,8 @@ class CalibrationDialog:
         Dialog for Calibrating the lightbarrier for the current light conditions.
     '''
 
-    def __init__(self, parent):
+    def __init__(self, parent,sublimator):
+        self.sublimator = sublimator
         top = self.top = Toplevel(parent)
         self.parent = parent
         Label(
@@ -27,13 +28,17 @@ class CalibrationDialog:
         self.startTime = datetime.datetime.utcnow()
         self.calibrationRunning = True
         self.updateTime()
-        b = Button(top, text="Finish Calibration", command=self.finish)
+        b = Button(top, text="FinishCalibration", command=self.finish)
         b.pack(pady=5)
         b.focus_set()
         top.wait_visibility()
         top.protocol('WM_DELETE_WINDOW', self.finish)
+        # start calibration thread
+        self.sublimator.calib_start()
 
     def finish(self):
+        # stopping calibr. thread
+        self.sublimator.calib_stop()
         self.calibrationRunning = False
         self.top.destroy()
 
@@ -168,7 +173,7 @@ class Gui(Frame):
             self.saveCheckbox.configure(state="normal")
 
     def calibrateButton_Click(self, event):
-        dialog = CalibrationDialog(root)
+        dialog = CalibrationDialog(root,self.sublimator)
         dialog.top.transient(self.master)
         dialog.top.grab_set()
         self.wait_window(dialog.top)
