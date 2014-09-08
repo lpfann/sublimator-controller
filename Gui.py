@@ -281,7 +281,7 @@ class Gui(Frame):
         self.line4, = self.ax2.plot(
             [x[3] for x in self.plotData], 'b-')  # Cooling
         self.line5, = self.lightax.plot(
-            [x[4] for x in self.plotData], 'k_')  # Light
+            [x[4] for x in self.plotData], 'k:')  # Light
 
         self.ax.set_xlabel("Time")
         self.ax.set_ylim([0, 180])
@@ -293,7 +293,7 @@ class Gui(Frame):
         self.ax2.yaxis.label.set_color("blue")
         self.ax2.tick_params(axis="y", colors="blue")
         self.lightax.set_ylim([0, 1])
-        self.lightax.set_ylabel(u"Smoke-Density")
+        self.lightax.set_ylabel(u"LED-Brightness")
         self.lightax.yaxis.label.set_color("black")
         self.lightax.tick_params(axis="y", colors="black")
 
@@ -351,23 +351,22 @@ class Gui(Frame):
 
         if not self.sublimator.running:
             if self.progend is False and self.checkvariable.get() is 1:
-                # Kompletter Plot wird am Ende gezeichnet wenn Checkox aktiv
-                figurefile = "./figs/" + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M") + "_" + self.sequences[
-                    self.runner].name + ".png"
-                self.plotData = self.sublimator.datalog
-                self.line1.set_xdata(np.arange(len(self.plotData)))
-                self.line1.set_ydata([x[0] for x in self.plotData])
-                self.line2.set_xdata(np.arange(len(self.plotData)))
-                self.line2.set_ydata([x[1] for x in self.plotData])
-                self.line3.set_xdata(np.arange(len(self.plotData)))
-                self.line3.set_ydata([x[2] for x in self.plotData])
-                self.line4.set_xdata(np.arange(len(self.plotData)))
-                self.line4.set_ydata([x[3] for x in self.plotData])
-                self.line5.set_xdata(np.arange(len(self.plotData)))
-                self.line5.set_ydata([x[4] for x in self.plotData])
-                self.ax.set_title(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M") + "_" + self.sequences[
-                    self.runner].name)
-                # self.fig.canvas.draw()
+                # Kompletter Plot wird am Ende gezeichnet wenn Checkbox aktiv
+                name = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M") + "_" + self.sequences[
+                    self.runner].name
+                figurefile = "./figs/" + name + ".png"
+                self.line1.set_xdata(np.arange(len(self.sublimator.datalog)))
+                self.line1.set_ydata([x[0] for x in self.sublimator.datalog])
+                self.line2.set_xdata(np.arange(len(self.sublimator.datalog)))
+                self.line2.set_ydata([x[1] for x in self.sublimator.datalog])
+                self.line3.set_xdata(np.arange(len(self.sublimator.datalog)))
+                self.line3.set_ydata([x[2] for x in self.sublimator.datalog])
+                self.line4.set_xdata(np.arange(len(self.sublimator.datalog)))
+                self.line4.set_ydata([x[3] for x in self.sublimator.datalog])
+                self.line5.set_xdata(np.arange(len(self.sublimator.datalog)))
+                self.line5.set_ydata([x[4] for x in self.sublimator.datalog])
+
+                self.ax.set_title(name)
                 self.fig.savefig(figurefile)
                 self.sublimator.logger.info(
                     "Figure with collected data was created: {}".format(figurefile))
