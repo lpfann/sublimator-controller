@@ -22,19 +22,19 @@ class CalibrationDialog:
         top = self.top = Toplevel(parent)
         self.parent = parent
         Label(
-            top, text="Calibration in progress.\n Best results are achieved after 10 Minutes of calibration").pack()
+            top, text="Calibration in progress.\n Lightsensor will not work if canceled.").pack()
         self.timelabel = Label(top, text="Time: 0:0")
         self.timelabel.pack()
         self.startTime = datetime.datetime.utcnow()
         self.calibrationRunning = True
-        self.updateTime()
-        b = Button(top, text="Finish Calibration", command=self.finish)
-        b.pack(pady=5)
-        b.focus_set()
+        self.finishbutton = Button(top, text="Cancel Calibration", command=self.finish,foreground="red")
+        self.finishbutton.pack(pady=5)
+
         top.wait_visibility()
         top.protocol('WM_DELETE_WINDOW', self.finish)
         # start calibration thread
         self.sublimator.calib_start()
+        self.updateTime()
 
     def finish(self):
         # stopping calibr. thread
@@ -42,12 +42,18 @@ class CalibrationDialog:
         self.calibrationRunning = False
         self.top.destroy()
 
+
     def updateTime(self):
         if self.calibrationRunning:
             self.passedTime = datetime.datetime.utcnow() - self.startTime
             self.timelabel.config(
                 text="Calibration-Time: {}:{}".format(self.passedTime.seconds / 60, self.passedTime.seconds % 60))
-            self.parent.after(1000, self.updateTime)
+            if self.sublimator.hardware.activeConfiguration():
+                self.parent.after(1000, self.updateTime)
+            else:
+                self.finishbutton.config(text="Finish",foreground="black")
+                self.timelabel.config(
+                    text="Calibration finished!")
 
 
 class Gui(Frame):

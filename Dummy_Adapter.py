@@ -57,8 +57,7 @@ class Dummy_Adapter:
         self.__activeLightBarrier__=False
         start=time.time()+0.0
         actual=start
-        if debug:
-            i=1
+        i=1
         while(actual-start<loopTime):
             if debug:
                 print(i,stopSignal.is_set())
@@ -77,11 +76,11 @@ class Dummy_Adapter:
         self.brightAct=self.brightAct+random.randint(-20,20)
         if self.brightAct==0:
             self.brightAct=0
-        elif self.brightActf==4095:
+        elif self.brightAct==4095:
             self.brightAct=4095
         return self.brightAct
 
-    def configLightBarrier(self,tolerance=30,debug=False,waitTimeChange=10,waitTimeLoop=5,runTime=600):
+    def configLightBarrier(self,tolerance=30,debug=False,waitTimeChange=10,waitTimeLoop=5,runTime=20):
         try:
             if not self.activeConfiguration():
                 self.threadSignal.clear()

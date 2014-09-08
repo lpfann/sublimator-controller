@@ -33,6 +33,7 @@ class Sublimator():
     def __init__(self):
         self.currSeq = None
         self.running = False
+        self.lightcalibrationFinished = False
         self.datalog = []
         self.initLogger()
         # Hardware Adapter initalisieren
