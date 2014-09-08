@@ -83,18 +83,20 @@ class Dummy_Adapter:
 
     def configLightBarrier(self,tolerance=30,debug=False,waitTimeChange=10,waitTimeLoop=5,runTime=600):
         try:
-            if not self.activeConfugaration():
+            if not self.activeConfiguration():
                 self.threadSignal.clear()
                 self.thread=threading.Thread(target=self.__configureLightBarrier__,args=(self.threadSignal,tolerance,debug,waitTimeChange,waitTimeLoop,runTime))
-                self.thread.setDaemon(True)
                 self.thread.start()
         except:
             print("Fehler: starten des Thread zum Konfigurieren der Lichtschranke nicht moeglich")
 
     def stopCalibrating(self):
         try:
-            self.threadSignal.set()
-            return True
+            if ha.activeConfiguration():
+                self.threadSignal.set()
+                return True
+            else:
+                return False
         except:
             return False
 
@@ -116,6 +118,6 @@ class Dummy_Adapter:
 if __name__=='__main__':
     ha=Dummy_Adapter()
     ha.configLightBarrier(runTime=10000,debug=True)
-    if ha.activeConfugaration():
+    if ha.activeConfiguration():
         time.sleep(5)
     print(ha.stopCalibrating())

@@ -121,7 +121,7 @@ class hardwareAdapter:
 
     def configLightBarrier(self,tolerance=30,debug=False,waitTimeChange=10,waitTimeLoop=5,runTime=600):
         try:
-            if not self.activeConfugaration():
+            if not self.activeConfiguration():
                 self.threadSignal.clear()
                 self.thread=threading.Thread(target=self.__configureLightBarrier__,args=(self.threadSignal,tolerance,debug,waitTimeChange,waitTimeLoop,runTime))
                 self.thread.setDaemon(True)
