@@ -363,12 +363,14 @@ class Gui(Frame):
                 self.line3.set_ydata([x[2] for x in self.plotData])
                 self.line4.set_xdata(np.arange(len(self.plotData)))
                 self.line4.set_ydata([x[3] for x in self.plotData])
+                self.line5.set_xdata(np.arange(len(self.plotData)))
+                self.line5.set_ydata([x[4] for x in self.plotData])
                 self.ax.set_title(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M") + "_" + self.sequences[
                     self.runner].name)
                 # self.fig.canvas.draw()
                 self.fig.savefig(figurefile)
                 self.sublimator.logger.info(
-                    "Verlaufsgrafik auf Basis der Messdaten wurde erstellt: {}".format(figurefile))
+                    "Figure with collected data was created: {}".format(figurefile))
 
                 self.progend = True
 
