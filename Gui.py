@@ -42,7 +42,6 @@ class CalibrationDialog:
         self.calibrationRunning = False
         self.top.destroy()
 
-
     def updateTime(self):
         if self.calibrationRunning:
             self.passedTime = datetime.datetime.utcnow() - self.startTime
@@ -51,7 +50,8 @@ class CalibrationDialog:
             if self.sublimator.hardware.activeConfiguration():
                 self.parent.after(1000, self.updateTime)
             else:
-                self.finishbutton.config(text="Finish",foreground="black")
+                self.sublimator.lightcalibrationFinished = True
+                self.finishbutton.config(text="Finish", foreground="black")
                 self.timelabel.config(
                     text="Calibration finished!")
 
@@ -260,9 +260,18 @@ class Gui(Frame):
             self.button02.config(text="Start")
 
     def showDiagram(self):
-        self.plotData = [(0, 0, 0, 0)] * MAX_NUM_PLOTDATA
+        self.plotData = [(0, 0, 0, 0, 0)] * MAX_NUM_PLOTDATA
         self.fig, self.ax = plt.subplots()
         self.ax2 = self.ax.twinx()
+
+        # Lightbarrier Axis
+        self.lightax = self.ax.twinx()
+        self.fig.subplots_adjust(right=0.75)
+        # Move to the right
+        self.lightax.spines['right'].set_position(('axes', 1.2))
+        self.lightax.set_frame_on(True)
+        self.lightax.patch.set_visible(False)
+
         self.line1, = self.ax.plot(
             [x[0] for x in self.plotData], 'r--')  # Target Heat
         self.line2, = self.ax.plot(
@@ -271,11 +280,24 @@ class Gui(Frame):
             [x[2] for x in self.plotData], 'b--')  # Target Cooling
         self.line4, = self.ax2.plot(
             [x[3] for x in self.plotData], 'b-')  # Cooling
+        self.line5, = self.lightax.plot(
+            [x[4] for x in self.plotData], 'k_')  # Light
+
         self.ax.set_xlabel("Time")
         self.ax.set_ylim([0, 180])
-        self.ax.set_ylabel(u"Heating in °C")
+        self.ax.set_ylabel(u"Heating-element in °C")
+        self.ax.yaxis.label.set_color("red")
+        self.ax.tick_params(axis="y", colors="red")
         self.ax2.set_ylim([0, 30])
-        self.ax2.set_ylabel(u"Cooling in °C")
+        self.ax2.set_ylabel(u"Cooling-element in °C")
+        self.ax2.yaxis.label.set_color("blue")
+        self.ax2.tick_params(axis="y", colors="blue")
+        self.lightax.set_ylim([0, 1])
+        self.lightax.set_ylabel(u"Smoke-Density")
+        self.lightax.yaxis.label.set_color("black")
+        self.lightax.tick_params(axis="y", colors="black")
+
+
 
         self.canvas = FigureCanvasTkAgg(self.fig, self)
         self.canvas.show()
@@ -315,6 +337,9 @@ class Gui(Frame):
 
             self.line4.set_xdata(np.arange(len(self.plotData)))
             self.line4.set_ydata([x[3] for x in self.plotData])
+
+            self.line5.set_xdata(np.arange(len(self.plotData)))
+            self.line5.set_ydata([x[4] for x in self.plotData])
 
             # TODO: Eventuell Blitting einbauen um Performance zu verbessern
 

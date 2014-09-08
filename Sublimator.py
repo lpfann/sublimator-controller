@@ -109,6 +109,8 @@ class Sublimator():
         prog = self.currSeq.programs[self.progindex]
         targetheatingtemp = prog.targetHeatingTemp
         targetcoolingtemp = prog.targetCoolingTemp
+        if not self.lightcalibrationFinished:
+            self.logger.info("Lightbarrier-Calibration was not finished. Sensor is not active!")
         timer = Timer(prog.time, self.counter)
         timer.start()
         oldindex = self.progindex
