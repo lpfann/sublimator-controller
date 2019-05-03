@@ -267,11 +267,12 @@ class Gui(Frame):
         # Lightbarrier Axis
         self.lightax = self.ax.twinx()
         self.fig.subplots_adjust(right=0.75)
-        # Move to the right
+        # Move lightbarrier axis to the right
         self.lightax.spines['right'].set_position(('axes', 1.2))
         self.lightax.set_frame_on(True)
         self.lightax.patch.set_visible(False)
 
+        # Initalize plot lines with dummy data
         self.line1, = self.ax.plot(
             [x[0] for x in self.plotData], 'r--')  # Target Heat
         self.line2, = self.ax.plot(
@@ -283,6 +284,7 @@ class Gui(Frame):
         self.line5, = self.lightax.plot(
             [x[4] for x in self.plotData], 'k:')  # Light
 
+        # Set parameter for the look of the figure
         self.ax.set_xlabel("Time")
         self.ax.set_ylim([0, 180])
         self.ax.set_ylabel(u"Heating-element in °C")
@@ -297,12 +299,12 @@ class Gui(Frame):
         self.lightax.yaxis.label.set_color("black")
         self.lightax.tick_params(axis="y", colors="black")
 
-
-
+        # Show figure in tkinter widget
         self.canvas = FigureCanvasTkAgg(self.fig, self)
         self.canvas.show()
         self.canvas.get_tk_widget().grid()
         self.canvas._tkcanvas.grid(column=2, row=1, rowspan=100, sticky=W + S)
+
 
     def updatePlot(self):
         if self.sublimator.running:
@@ -317,10 +319,6 @@ class Gui(Frame):
                 self.seplist[self.sublimator.progindex].configure(disabledbackground="cyan")
                 self.seplist[self.sublimator.progindex - 1].configure(disabledbackground="white")
 
-            # heatTempData = [x[1] for x in data]
-            # ymin = float(min(heatTempData)) - 10
-            # ymax = float(max(heatTempData)) + 10
-            # self.ax.set_ylim(ymin, ymax)
             self.plotData = data
             if len(data) > MAX_NUM_PLOTDATA:
                 self.plotData = data
@@ -341,7 +339,6 @@ class Gui(Frame):
             self.line5.set_xdata(np.arange(len(self.plotData)))
             self.line5.set_ydata([x[4] for x in self.plotData])
 
-            # TODO: Eventuell Blitting einbauen um Performance zu verbessern
 
             # self.ax.plot()
             # self.ax2.plot()
@@ -352,24 +349,7 @@ class Gui(Frame):
         if not self.sublimator.running:
             if self.progend is False and self.checkvariable.get() is 1:
                 # Kompletter Plot wird am Ende gezeichnet wenn Checkbox aktiv
-                name = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M") + "_" + self.sequences[
-                    self.runner].name
-                figurefile = "./figs/" + name + ".png"
-                self.line1.set_xdata(np.arange(len(self.sublimator.datalog)))
-                self.line1.set_ydata([x[0] for x in self.sublimator.datalog])
-                self.line2.set_xdata(np.arange(len(self.sublimator.datalog)))
-                self.line2.set_ydata([x[1] for x in self.sublimator.datalog])
-                self.line3.set_xdata(np.arange(len(self.sublimator.datalog)))
-                self.line3.set_ydata([x[2] for x in self.sublimator.datalog])
-                self.line4.set_xdata(np.arange(len(self.sublimator.datalog)))
-                self.line4.set_ydata([x[3] for x in self.sublimator.datalog])
-                self.line5.set_xdata(np.arange(len(self.sublimator.datalog)))
-                self.line5.set_ydata([x[4] for x in self.sublimator.datalog])
-
-                self.ax.set_title(name)
-                self.fig.savefig(figurefile)
-                self.sublimator.logger.info(
-                    "Figure with collected data was created: {}".format(figurefile))
+                self.saveEndPlot()
 
                 self.progend = True
 
@@ -379,26 +359,63 @@ class Gui(Frame):
             self.startButton.config(text="Start")
             self.saveCheckbox.configure(state="normal")
 
-    def updateConsole(self):
-        '''
-        Updatet die Konsolenausgabe.
-        Verhindert Probleme mit Multithrading und Tkinter...
-        '''
+    def saveEndPlot(self):
+        name = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M") + "_" + self.sequences[
+            self.runner].name
+        figurefile = "./figs/" + name + ".png"
+        self.ax.lines.pop(0)
+        self.ax2.lines.pop(0)
+        self.lightax.pop(0)
 
-        self.newlen = len(self.sublimator.log_capture_string.getvalue())
-        # Update der Konsole wenn neue Daten vorliegen
-        if 0 < self.newlen != self.oldlen:
-            self.oldlen = self.newlen
-            # Inhalt komplett loeschen
-            self.textField.configure(state=NORMAL)
-            self.textField.delete(1.0, END)
-            self.log = self.sublimator.log_capture_string.getvalue()
-            # Neuen Inhalt einfuegen
-            self.textField.insert(END, self.log)
-            self.textField.configure(state=DISABLED)
-            self.textField.yview(END)  # Setzt Scrollbar ans Ende
-        # Update nach einer Sekunde, ruft Methode neu auf
-        self.after(1000, self.updateConsole)
+
+        self.line1, = self.ax.plot(
+            [x[0] for x in self.sublimator.datalog], 'r--')  # Target Heat
+        self.line2, = self.ax.plot(
+            [x[1] for x in self.sublimator.datalog], 'r-')  # Heat
+        self.line3, = self.ax2.plot(
+            [x[2] for x in self.sublimator.datalog], 'b--')  # Target Cooling
+        self.line4, = self.ax2.plot(
+            [x[3] for x in self.sublimator.datalog], 'b-')  # Cooling
+        self.line5, = self.lightax.plot(
+            [x[4] for x in self.sublimator.datalog], 'k:')  # Light
+
+        # self.line1.set_xdata(np.arange(len(self.sublimator.datalog)))
+        # self.line1.set_ydata([x[0] for x in self.sublimator.datalog])
+        # self.line2.set_xdata(np.arange(len(self.sublimator.datalog)))
+        # self.line2.set_ydata([x[1] for x in self.sublimator.datalog])
+        # self.line3.set_xdata(np.arange(len(self.sublimator.datalog)))
+        # self.line3.set_ydata([x[2] for x in self.sublimator.datalog])
+        # self.line4.set_xdata(np.arange(len(self.sublimator.datalog)))
+        # self.line4.set_ydata([x[3] for x in self.sublimator.datalog])
+        # self.line5.set_xdata(np.arange(len(self.sublimator.datalog)))
+        # self.line5.set_ydata([x[4] for x in self.sublimator.datalog])
+
+        self.ax.set_title(name)
+        self.fig.savefig(figurefile)
+        self.sublimator.logger.info(
+            "Figure with collected data was created: {}".format(figurefile))
+        self.showDiagram()
+
+    def updateConsole(self):
+            '''
+            Updatet die Konsolenausgabe.
+            Verhindert Probleme mit Multithrading und Tkinter...
+            '''
+
+            self.newlen = len(self.sublimator.log_capture_string.getvalue())
+            # Update der Konsole wenn neue Daten vorliegen
+            if 0 < self.newlen != self.oldlen:
+                self.oldlen = self.newlen
+                # Inhalt komplett loeschen
+                self.textField.configure(state=NORMAL)
+                self.textField.delete(1.0, END)
+                self.log = self.sublimator.log_capture_string.getvalue()
+                # Neuen Inhalt einfuegen
+                self.textField.insert(END, self.log)
+                self.textField.configure(state=DISABLED)
+                self.textField.yview(END)  # Setzt Scrollbar ans Ende
+            # Update nach einer Sekunde, ruft Methode neu auf
+            self.after(1000, self.updateConsole)
 
 
 def _quit():
